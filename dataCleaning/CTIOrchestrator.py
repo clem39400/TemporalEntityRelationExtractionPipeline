@@ -1,25 +1,27 @@
 """
-CTIPipeline.py
---------------
+CTIOrchestrator.py
+------------------
 Point d'entrée principal du pipeline CTI.
 
 Flux :
     fichier(s)
-        → CTIDataPipeline  : extraction, normalisation, sanitisation IoC,
-                             anonymisation PII, nettoyage boilerplate
-        → split_into_paragraphs : Stage 1 — découpage structurel (\n\n)
+        → CTITextCleaner         : extraction, normalisation, séparation IoC/prose,
+                                   sanitisation IoCs, anonymisation PII, boilerplate
+        → split_into_paragraphs  : Stage 1 — découpage structurel (\n\n) + fusion des blocs courts
         → semantic_chunking_improved : Stage 2 — raffinement sémantique
-        → process_ioc_block : extraction regex du bloc IoC (séparé du LLM)
+
+    Le bloc IoC est séparé de la prose mais n'est PAS traité par regex :
+    l'extraction des entités et relations sera assurée par le LLM en aval.
 
 Usage CLI :
     # Fichier unique
-    python CTIPipeline.py --input report.pdf
+    python CTIOrchestrator.py --input report.pdf
 
     # Dossier entier avec sauvegarde JSON
-    python CTIPipeline.py --input ./reports --output ./chunks_output
+    python CTIOrchestrator.py --input ./reports --output ./chunks_output
 
     # Seuils personnalisés
-    python CTIPipeline.py --input report.pdf --theta_s 0.4 --theta_e 0.15 --l_max 350
+    python CTIOrchestrator.py --input report.pdf --theta_s 0.3 --theta_e 0.1 --l_max 600
 """
 
 import os
@@ -27,11 +29,11 @@ import re
 import json
 import argparse
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Optional
 
 # ── Imports internes ──────────────────────────────────────────────────────────
-from CTIDataPipeline import CTIDataPipeline
+from CTITextCleaner import CTITextCleaner
 from SemanticChunk import semantic_chunking_improved
 
 # ── Logging ───────────────────────────────────────────────────────────────────
@@ -42,81 +44,88 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
+# Désactiver les warnings verbeux de Presidio
+logging.getLogger("presidio-analyzer").setLevel(logging.ERROR)
+
 
 # ── Structures de données ─────────────────────────────────────────────────────
 
 @dataclass
 class ChunkingConfig:
-    """Hyperparamètres de l'algorithme de chunking sémantique (SC-LKM)."""
-    theta_s: float = 0.5   # seuil similarité cosinus
-    theta_e: float = 0.1   # seuil overlap entités (Jaccard)
-    l_max: int = 400        # longueur max d'un chunk en mots
+    """Hyperparamètres de l'algorithme de chunking sémantique (SC-LKM).
 
+    Valeurs calibrées pour BAAI/bge-m3 sur des rapports CTI :
+    - theta_s=0.7 : plage bge-m3 ~0.45–0.89 (couper sur rupture thématique réelle)
+    - theta_e=0.0 : désactivé — avec des blocs courts (~50 mots), le Jaccard
+                    d'entités est quasi-nul même entre blocs adjacents, créant
+                    de fausses coupures. Réactiver (ex: 0.1) sur de gros blocs.
+    - l_max=800   : plafond de sécurité en mots
+    """
+    theta_s: float = 0.2    # seuil similarité cosinus
+    theta_e: float = 0.15    # 0.0 = désactivé (Jaccard < 0 impossible)
+    l_max: int = 400        # longueur max d'un chunk en mots
 
 @dataclass
 class ProcessedDocument:
+    """Résultat du pipeline pour un fichier traité."""
     source_file: str
     prose_clean: str
-    ioc_block: str
+    ioc_block: str          # conservé pour transmission au LLM, non traité par regex
     paragraphs: list[str]
     chunks: list[str]
-    ioc_relations: list[tuple] = field(default_factory=list)
     error: Optional[str] = None
 
     def summary(self) -> str:
         return (
             f"[{os.path.basename(self.source_file)}] "
             f"{len(self.paragraphs)} paragraphes → "
-            f"{len(self.chunks)} chunks | "
-            f"{len(self.ioc_relations)} IoC relations"
+            f"{len(self.chunks)} chunks"
         )
 
 
 # ── Utilitaires ───────────────────────────────────────────────────────────────
 
+# Blocs PDF < MIN_BLOCK_WORDS mots sont fusionnés avec leur voisin
+# pour garantir des embeddings fiables dans le chunker sémantique.
+MIN_BLOCK_WORDS = 30
+
 def split_into_paragraphs(text: str) -> list[str]:
     """
-    Stage 1 du chunking : découpe structurelle par double saut de ligne.
-    Filtre les paragraphes vides ou trop courts (< 20 caractères).
+    Stage 1 du chunking.
+
+    1. Découpe sur \\n\\n et nettoie les \\n résiduels intra-bloc.
+    2. Fusionne les blocs trop courts (< MIN_BLOCK_WORDS mots) avec leur voisin
+       suivant — évite les micro-blocs dont l'embedding serait peu fiable.
+    3. Filtre les blocs vides ou inférieurs à 20 caractères.
     """
-    paragraphs = [p.strip() for p in text.split("\n\n")]
-    return [p for p in paragraphs if len(p) >= 20]
+    # ── Étape 1 : nettoyage de base ───────────────────────────────────────────
+    raw = [p.strip() for p in text.split("\n\n")]
+    raw = [re.sub(r'\n+', ' ', p) for p in raw]
+    raw = [re.sub(r' +', ' ', p) for p in raw]
+    raw = [p for p in raw if len(p) >= 20]
 
+    # ── Étape 2 : fusion des blocs trop courts ────────────────────────────────
+    merged: list[str] = []
+    buffer = ""
+    for block in raw:
+        if buffer:
+            block = buffer + " " + block
+            buffer = ""
+        if len(block.split()) < MIN_BLOCK_WORDS:
+            buffer = block   # accumuler avec le suivant
+        else:
+            merged.append(block)
+    if buffer:               # dernier bloc résiduel trop court
+        if merged:
+            merged[-1] += " " + buffer
+        else:
+            merged.append(buffer)
 
-def process_ioc_block(ioc_block: str, source_file: str) -> list[tuple]:
-    """
-    Extrait les IoCs structurés depuis le bloc séparé et les retourne
-    sous forme de triplets (source, relation, valeur).
-
-    Implémente la Line 5 de l'Algorithm 1 de LLM-TIKG (Hu et al., 2024) :
-    traitement regex séparé du bloc IoC, sans passer par le LLM.
-    """
-    relations = []
-    main_object = os.path.splitext(os.path.basename(source_file))[0]
-
-    # Hashes MD5 (32) / SHA1 (40) / SHA256 (64)
-    for h in re.findall(r"\b[0-9a-fA-F]{32,64}\b", ioc_block):
-        relations.append((main_object, "has_ioc_hash", h))
-
-    # IPs (normales et obfusquées : 1[.]2[.]3[.]4)
-    for ip in re.findall(r"\b(?:\d{1,3}[\[\.]){3}\d{1,3}\b", ioc_block):
-        clean_ip = ip.replace("[.]", ".").replace("[", "").replace("]", "")
-        relations.append((main_object, "has_ioc_ip", clean_ip))
-
-    # Domaines obfusqués : evil[.]com
-    for domain in re.findall(r"[\w.\-]+\[\.\][\w]{2,6}", ioc_block):
-        clean_domain = domain.replace("[.]", ".")
-        relations.append((main_object, "has_ioc_domain", clean_domain))
-
-    # CVE identifiers
-    for cve in re.findall(r"CVE-\d{4}-\d{4,7}", ioc_block, re.IGNORECASE):
-        relations.append((main_object, "has_ioc_cve", cve.upper()))
-
-    return relations
+    return merged
 
 
 def save_results(doc: ProcessedDocument, output_dir: str) -> None:
-    """Sauvegarde les chunks et IoC relations en JSON (un fichier par document)."""
+    """Sauvegarde les chunks en JSON (un fichier par document source)."""
     os.makedirs(output_dir, exist_ok=True)
     base = os.path.splitext(os.path.basename(doc.source_file))[0]
     out_path = os.path.join(output_dir, f"{base}_processed.json")
@@ -126,7 +135,7 @@ def save_results(doc: ProcessedDocument, output_dir: str) -> None:
         "n_paragraphs": len(doc.paragraphs),
         "n_chunks": len(doc.chunks),
         "chunks": doc.chunks,
-        "ioc_relations": [list(t) for t in doc.ioc_relations],
+        "ioc_block": doc.ioc_block,   # transmis tel quel au LLM en aval
         "error": doc.error,
     }
 
@@ -140,28 +149,27 @@ def save_results(doc: ProcessedDocument, output_dir: str) -> None:
 
 def process_single_file(
     file_path: str,
-    cleaner: CTIDataPipeline,
+    cleaner: CTITextCleaner,
     chunking_cfg: ChunkingConfig,
     output_dir: Optional[str] = None,
 ) -> ProcessedDocument:
     """
     Orchestre le pipeline complet pour un fichier :
 
-        Étape 1 — CTIDataPipeline.process_file()
+        Étape 1 — CTITextCleaner.process_file()
                   extraction → normalisation → séparation IoC/prose
                   → sanitisation IoCs → anonymisation PII → boilerplate
 
         Étape 2 — split_into_paragraphs()
-                  Stage 1 chunking : découpage structurel (\n\n)
+                  Stage 1 chunking : découpage structurel + fusion blocs courts
 
         Étape 3 — semantic_chunking_improved()
                   Stage 2 chunking : raffinement sémantique
 
-        Étape 4 — process_ioc_block()
-                  Extraction regex du bloc IoC (triplets Neo4j-ready)
-
-        Étape 5 — save_results() [optionnel]
+        Étape 4 — save_results() [optionnel]
                   Sérialisation JSON si --output fourni
+
+    L'extraction des entités et relations (NER + RE) est assurée en aval par le LLM.
     """
     log.info(f"Traitement : {file_path}")
 
@@ -213,11 +221,6 @@ def process_single_file(
             paragraphs=paragraphs, chunks=[], error=str(e)
         )
 
-    # ── Étape 4 : IoC block (regex, hors LLM) ────────────────────────────────
-    ioc_relations = process_ioc_block(ioc_block, file_path) if ioc_block else []
-    if ioc_relations:
-        log.info(f"  {len(ioc_relations)} IoC relations extraites")
-
     # ── Construction du résultat ──────────────────────────────────────────────
     doc = ProcessedDocument(
         source_file=file_path,
@@ -225,10 +228,9 @@ def process_single_file(
         ioc_block=ioc_block,
         paragraphs=paragraphs,
         chunks=chunks,
-        ioc_relations=ioc_relations,
     )
 
-    # ── Étape 5 : Sauvegarde (optionnelle) ───────────────────────────────────
+    # ── Étape 4 : Sauvegarde (optionnelle) ───────────────────────────────────
     if output_dir:
         save_results(doc, output_dir)
 
@@ -243,7 +245,7 @@ SUPPORTED_EXTENSIONS = {".pdf", ".txt"}
 
 def process_directory(
     input_dir: str,
-    cleaner: CTIDataPipeline,
+    cleaner: CTITextCleaner,
     chunking_cfg: ChunkingConfig,
     output_dir: Optional[str] = None,
 ) -> list[ProcessedDocument]:
@@ -264,15 +266,14 @@ def process_directory(
         result = process_single_file(fp, cleaner, chunking_cfg, output_dir)
         results.append(result)
 
-    # Résumé global
     ok = [r for r in results if not r.error]
-    ko = [r for r in results if r.error]
     total_chunks = sum(len(r.chunks) for r in ok)
+    n_errors = sum(1 for r in results if r.error)
     log.info(
         f"\n{'─' * 50}\n"
         f"Résumé : {len(ok)}/{len(results)} fichiers OK | "
         f"{total_chunks} chunks au total | "
-        f"{len(ko)} erreurs"
+        f"{n_errors} erreurs"
     )
     return results
 
@@ -280,6 +281,7 @@ def process_directory(
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
 def parse_args():
+    _defaults = ChunkingConfig()   # source de vérité unique
     parser = argparse.ArgumentParser(
         description="Pipeline CTI : nettoyage + chunking sémantique"
     )
@@ -292,16 +294,16 @@ def parse_args():
         help="Dossier de sortie pour les JSON (optionnel)"
     )
     parser.add_argument(
-        "--theta_s", type=float, default=0.5,
-        help="Seuil similarité sémantique (défaut : 0.5)"
+        "--theta_s", type=float, default=_defaults.theta_s,
+        help=f"Seuil similarité sémantique (défaut : {_defaults.theta_s})"
     )
     parser.add_argument(
-        "--theta_e", type=float, default=0.1,
-        help="Seuil overlap entités Jaccard (défaut : 0.1)"
+        "--theta_e", type=float, default=_defaults.theta_e,
+        help=f"Seuil overlap entités Jaccard (défaut : {_defaults.theta_e})"
     )
     parser.add_argument(
-        "--l_max", type=int, default=400,
-        help="Longueur max d'un chunk en mots (défaut : 400)"
+        "--l_max", type=int, default=_defaults.l_max,
+        help=f"Longueur max d'un chunk en mots (défaut : {_defaults.l_max})"
     )
     return parser.parse_args()
 
@@ -309,9 +311,8 @@ def parse_args():
 def main():
     args = parse_args()
 
-    # Instanciation unique (Presidio + spaCy chargés une seule fois)
     log.info("Initialisation du pipeline de nettoyage (Presidio + spaCy)...")
-    cleaner = CTIDataPipeline()
+    cleaner = CTITextCleaner()
 
     cfg = ChunkingConfig(
         theta_s=args.theta_s,
@@ -322,7 +323,6 @@ def main():
     input_path = args.input
 
     if os.path.isfile(input_path):
-        # ── Mode fichier unique ────────────────────────────────────────────────
         result = process_single_file(input_path, cleaner, cfg, args.output)
 
         print(f"\n{'═' * 60}")
@@ -331,14 +331,8 @@ def main():
         for i, chunk in enumerate(result.chunks, 1):
             preview = chunk[:120].replace("\n", " ")
             print(f"\n[Chunk {i:02d}] {preview}...")
-        if result.ioc_relations:
-            print(f"\n{'─' * 60}")
-            print(f"IoC relations ({len(result.ioc_relations)}) :")
-            for rel in result.ioc_relations[:10]:
-                print(f"  {rel[0]} --[{rel[1]}]--> {rel[2]}")
 
     elif os.path.isdir(input_path):
-        # ── Mode dossier ──────────────────────────────────────────────────────
         process_directory(input_path, cleaner, cfg, args.output)
 
     else:
