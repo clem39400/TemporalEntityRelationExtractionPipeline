@@ -52,15 +52,7 @@ logging.getLogger("presidio-analyzer").setLevel(logging.ERROR)
 
 @dataclass
 class ChunkingConfig:
-    """Hyperparamètres de l'algorithme de chunking sémantique (SC-LKM).
-
-    Valeurs calibrées pour BAAI/bge-m3 sur des rapports CTI :
-    - theta_s=0.7 : plage bge-m3 ~0.45–0.89 (couper sur rupture thématique réelle)
-    - theta_e=0.0 : désactivé — avec des blocs courts (~50 mots), le Jaccard
-                    d'entités est quasi-nul même entre blocs adjacents, créant
-                    de fausses coupures. Réactiver (ex: 0.1) sur de gros blocs.
-    - l_max=800   : plafond de sécurité en mots
-    """
+    """Hyperparamètres de l'algorithme de chunking sémantique (SC-LKM)."""
     theta_s: float = 0.2    # seuil similarité cosinus
     theta_e: float = 0.15    # 0.0 = désactivé (Jaccard < 0 impossible)
     l_max: int = 400        # longueur max d'un chunk en mots
@@ -135,7 +127,7 @@ def save_results(doc: ProcessedDocument, output_dir: str) -> None:
         "n_paragraphs": len(doc.paragraphs),
         "n_chunks": len(doc.chunks),
         "chunks": doc.chunks,
-        "ioc_block": doc.ioc_block,   # transmis tel quel au LLM en aval
+        "ioc_block": doc.ioc_block,
         "error": doc.error,
     }
 

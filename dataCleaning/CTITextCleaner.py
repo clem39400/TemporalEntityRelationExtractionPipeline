@@ -3,8 +3,7 @@ CTITextCleaner.py
 -----------------
 Module de préparation et d'assainissement des rapports CTI (PDF/TXT).
 Assure l'extraction, la normalisation, la séparation des blocs IoC, 
-la sanitisation (OpSec) et l'anonymisation PII, tout en préservant 
-l'intégrité sémantique et structurelle du texte narratif.
+la sanitisation (OpSec) et l'anonymisation (Emails) ultra-rapide par Regex.
 """
 
 import os
@@ -12,16 +11,10 @@ import re
 import unicodedata
 import fitz  # PyMuPDF
 from collections import Counter
-from presidio_analyzer import AnalyzerEngine
-from presidio_anonymizer import AnonymizerEngine
 from MitreWhitelistLoader import MitreWhitelistLoader
 
 class CTITextCleaner:
     def __init__(self, whitelist_ttl_days: int = 7):
-        # Chargement unique des modèles NLP lourds
-        self.analyzer = AnalyzerEngine()
-        self.anonymizer = AnonymizerEngine()
-        
         # Chargement de la whitelist dynamique
         self.cti_whitelist: set[str] = MitreWhitelistLoader(
             ttl_days=whitelist_ttl_days
@@ -33,6 +26,7 @@ class CTITextCleaner:
         """
         Extrait le texte brut avec un filtrage spatial (cropping) pour 
         ignorer physiquement les en-têtes et pieds de page.
+        L'extraction respecte l'ordre de lecture naturel (gère les colonnes).
         """
         _, ext = os.path.splitext(file_path)
         
@@ -49,18 +43,29 @@ class CTITextCleaner:
                         rect = page.rect
                         clip_rect = fitz.Rect(rect.x0, rect.y0 + 50, rect.x1, rect.y1 - 50)
                         
-                        # 2. Extraire uniquement à l'intérieur de cette zone
-                        blocks = page.get_text("blocks", clip=clip_rect)
+                        # 2. Extraire uniquement à l'intérieur de cette zone (tri naturel activé)
+                        blocks = page.get_text("blocks", clip=clip_rect, sort=True)
                         
+                        # On filtre pour ne garder que le texte (type 0)
                         text_blocks = [b for b in blocks if b[6] == 0]
-                        text_blocks.sort(key=lambda b: (round(b[1] / 15), b[0]))
                         
                         current_line_y = None
                         current_line_text = []
                         
                         for b in text_blocks:
+                            raw_text = b[4].strip()
+                            
+                            # --- Filtres anti-Sommaires à la source ---
+                            if re.search(r'(?:\.\s*){8,}', raw_text):
+                                continue
+                            if re.search(r'^(?:(?:[IVX]+|[A-Z])\s*)?→\s+.*\d{1,3}$', raw_text, flags=re.MULTILINE):
+                                continue
+                            if re.search(r'^\d+/\s+.*\d{1,3}$', raw_text, flags=re.MULTILINE):
+                                continue
+                            # ------------------------------------------
+                            
                             line_y = round(b[1] / 15)
-                            text = re.sub(r'\s+', ' ', b[4].strip())
+                            text = re.sub(r'\s+', ' ', raw_text)
                             
                             if not text:
                                 continue
@@ -86,96 +91,69 @@ class CTITextCleaner:
     # ── 2. Normalisation & Reconstruction ─────────────────────────────────────
 
     def normalize_text(self, text: str) -> str:
-        """
-        Applique la forme canonique NFC, supprime les caractères de contrôle,
-        et résout les césures typographiques.
-        """
-        # Forme canonique NFC pour préserver les hashes
         text = unicodedata.normalize('NFC', text)
-        
-        # Suppression des caractères de contrôle (garde \n et \t)
         text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', text)
-        
-        # Résolution des césures typographiques (ex: "cam-\npaigns" -> "campaigns")
-        text = re.sub(r'-\n(\S)', r'\1', text)
-        
+        # On fusionne complètement le mot coupé (ex: "cybersecu- rity" -> "cybersecurity")
+        text = re.sub(r'(?<=[a-z])-\s+([a-z])', r'\1', text)
+        text = re.sub(r'(?<=\b[A-Z])\s(?=[A-Z]\b)', '', text)
         return text
 
     def stitch_broken_sentences(self, text: str) -> str:
-        """
-        Reconnecte les phrases coupées artificiellement par des sauts de page 
-        ou des blocs de boilerplate supprimés.
-        """
-        # Si une ligne se termine sans ponctuation terminale (ni point, exclamation, 
-        # interrogation, deux-points) et que la reprise commence par une minuscule, 
-        # on fusionne l'ensemble en supprimant les sauts de ligne intermédiaires.
+        text = re.sub(r'([a-z]{2,}\.)([A-Z])', r'\1 \2', text)
         text = re.sub(r'(?<![.!?:\x22\x27])\s*\n+\s*([a-z])', r' \1', text)
-        
-        # Collapse des espaces multiples générés par les fusions
-        text = re.sub(r' +', ' ', text)
-        return text
+        return re.sub(r' +', ' ', text)
 
     # ── 3. Isolation et Filtrage ──────────────────────────────────────────────
 
     def clean_boilerplate(self, text: str) -> str:
-        """
-        Supprime les métadonnées de mise en page, les headers/footers répétitifs 
-        et les mentions légales qui parasitent l'analyse sémantique.
-        """
-        # Mentions TLP (Traffic Light Protocol)
-        text = re.sub(r'(?i)^\s*TLP:\s*(RED|AMBER(?:[-+]\w+)?|GREEN|CLEAR|WHITE)\s*$', '', text, flags=re.MULTILINE)
+        text = re.sub(r'(?i)May Cyber Threat Intelligence monthly report.*?\d{4}-\d{2}-\d{2}', '', text)
+        text = re.sub(r'(?i)CERT aDvens\s*-\s*CTI\s*Advens.*?(?:Paris|\[\])', '', text)
+        text = text.replace('|', ' ')
+        text = re.sub(r'(?i)\bTLP:\s*(RED|AMBER(?:[-+]\w+)?|GREEN|CLEAR|WHITE)\b', '', text)
+        text = re.sub(r'(?i)/home/[\w/.-]+(?:{[\w]+})?\.png', '', text)
         
-        # Numérotation de pages (ex: "Page 1", "1 / 15", ou chiffres isolés)
         text = re.sub(r'(?i)^\s*Page\s+\d+\s*$', '', text, flags=re.MULTILINE)
         text = re.sub(r'^\s*\d+\s*/\s*\d+\s*$', '', text, flags=re.MULTILINE)
         text = re.sub(r'^\s*\d+\s*$', '', text, flags=re.MULTILINE)
-        
-        # Disclaimers légaux et droits d'auteur
+        text = re.sub(r'(?i)^\s*(?:Table\s+of\s+contents?|Sommaire)\s*$', '', text, flags=re.MULTILINE)
+
+        # Filtres spécifiques Sommaires ANSSI / CERT-FR (Le coup de balai final)
+        text = re.sub(r'(?:→|\b\d+/)\s*[^.!?]{2,150}?\b\d{1,3}\b', '', text)
+        text = re.sub(r'(?i)best\s+practices\s+for\s+information\s+system\s+security\s+\d{1,3}\b', '', text)
+        text = re.sub(r'(?i)CYBER\s+THREAT\s+OVERVIEW(?:\s+\d{4})?', '', text)
+        text = re.sub(r'(?i)ATTACK\s+OBJECTIVES|MEANS\s+EMPLOYED\s+BY\s+ATTACKERS', '', text)
+
         text = re.sub(r'(?i)all rights reserved.*?\.', '', text)
         text = re.sub(r'(?i)©\s*\d{4}.*?\.', '', text)
 
-        # Identification et suppression des headers/footers répétés (> 3 occurrences)
         lines = text.split('\n')
         line_counts = Counter(l.strip() for l in lines if l.strip())
-        
-        # On ne filtre que les lignes courtes pour ne pas supprimer par erreur 
-        # une phrase légitime qui se répéterait.
-        repeated_noise = {l for l, c in line_counts.items() if c > 3 and len(l) < 80}
-        
+        repeated_noise = {l for l, c in line_counts.items() if c > 3 and len(l) < 250}
         cleaned_lines = [l for l in lines if l.strip() not in repeated_noise]
         
-        return '\n'.join(cleaned_lines)
+        result = '\n'.join(cleaned_lines)
+        return re.sub(r' +', ' ', result)
 
     def separate_ioc_block(self, text: str) -> tuple[str, str]:
-        """
-        Isole les tables d'indicateurs de compromission (IoC) généralement 
-        situées en fin de rapport, pour éviter de polluer le chunking sémantique.
-        """
         ioc_block = ""
-        # Recherche du titre de la section IoC (tolérant sur la casse et les pluriels)
         match = re.search(
             r'((?:Indicators?\s+of\s+Compromise|IoC[s]?|INDICATORS|NETWORK ARTIFACTS|HOST ARTIFACTS)\b.*)',
             text, 
             re.IGNORECASE | re.DOTALL
         )
-        
         if match:
             ioc_block = match.group(1).strip()
             text = text[:match.start()].strip()
-            
         return text, ioc_block
 
     # ── 4. OpSec et Confidentialité ───────────────────────────────────────────
 
     def sanitize_iocs(self, text: str) -> str:
-        """Defang les adresses email et URLs narratives pour la sécurité opérationnelle."""
-        # hacker@domain.com -> hacker[at]domain[.]com
         text = re.sub(
             r'([a-zA-Z0-9_.+-]+)@([a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+)',
             lambda m: f"{m.group(1)}[at]{m.group(2).replace('.', '[.]')}",
             text
         )
-        # http://malicious.com/payload -> hxxp://malicious[.]com/payload
         text = re.sub(
             r'https?://([a-zA-Z0-9-._~:/?#\[\]@!$&\'()*+,;=]+)',
             lambda m: f"hxxp://{m.group(1).replace('.', '[.]')}",
@@ -185,60 +163,34 @@ class CTITextCleaner:
 
     def anonymize_data(self, text: str) -> str:
         """
-        Masque les PII (emails, téléphones) tout en préservant les entités
-        techniques et les acteurs de la menace grâce à la whitelist CTI.
+        NOUVEAU : Masque les emails 1000x plus rapidement via Regex, 
+        tout en préservant la whitelist.
         """
-        results = self.analyzer.analyze(
-            text=text,
-            entities=["EMAIL_ADDRESS", "PHONE_NUMBER"],
-            language='en'
-        )
-        
-        # On exclut les correspondances qui font partie du lexique CTI (ex: APT teams)
-        safe_results = [
-            r for r in results
-            if text[r.start:r.end].lower() not in self.cti_whitelist
-        ]
-        
-        if not safe_results:
-            return text
-            
-        return self.anonymizer.anonymize(
-            text=text,
-            analyzer_results=safe_results
-        ).text
+        def replace_if_not_whitelisted(match):
+            email = match.group(0)
+            if email.lower() in self.cti_whitelist:
+                return email
+            return "[REDACTED_EMAIL]"
+
+        # Match une adresse email standard
+        return re.sub(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b', replace_if_not_whitelisted, text)
 
     # ── 5. Point d'Entrée ─────────────────────────────────────────────────────
 
     def process_file(self, file_path: str) -> tuple[str, str]:
-        """
-        Exécute la pipeline de nettoyage séquentielle sur un fichier source.
-        
-        Retourne :
-            - prose_clean (str) : Récit narratif nettoyé, reconstitué et prêt pour le chunking.
-            - ioc_block (str)   : Bloc de données techniques brutes extrait.
-        """
         raw = self.extract_text(file_path)
         if not raw:
             return "", ""
 
-        # 1. Normalisation de base
         normalized = self.normalize_text(raw)
-        
-        # 2. Séparation structurelle (Prose vs Données tabulaires)
         prose, ioc_block = self.separate_ioc_block(normalized)
-        
-        # 3. Nettoyage du bruit documentaire
         cleaned_prose = self.clean_boilerplate(prose)
-        
-        # 4. Reconstruction sémantique (résout le bug des phrases coupées)
         stitched_prose = self.stitch_broken_sentences(cleaned_prose)
         
-        # 5. Assainissement et anonymisation
-        sanitized = self.sanitize_iocs(stitched_prose)
-        final_prose = self.anonymize_data(sanitized)
+        # Inversion logique : on anonymise l'email AVANT de faire le defanging (pour que la regex match)
+        anonymized_prose = self.anonymize_data(stitched_prose)
+        final_prose = self.sanitize_iocs(anonymized_prose)
 
-        # Nettoyage final des doubles sauts de ligne excessifs
         final_prose = re.sub(r'\n{3,}', '\n\n', final_prose).strip()
 
         return final_prose, ioc_block

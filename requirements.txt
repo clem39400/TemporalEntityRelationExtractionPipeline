@@ -1,0 +1,6 @@
+pymupdf
+presidio-analyzer[transformers]
+presidio-anonymizer
+spacy
+sentence-transformers
+requests

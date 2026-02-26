@@ -16,32 +16,29 @@ from MitreWhitelistLoader import MitreWhitelistLoader
 
 print("[SemanticChunk] Chargement des modèles NLP et Embedding...")
 
-# 1. Modèle d'embedding (BAAI/bge-m3)
+# 1. Modèle d'embedding
+# ASTUCE VITESSE : Si "BAAI/bge-m3" reste trop lent sur ta machine (car très lourd), 
+# commente la ligne ci-dessous et décommente la suivante pour utiliser un modèle ultra-léger et rapide.
 model = SentenceTransformer("BAAI/bge-m3")
+# model = SentenceTransformer("all-MiniLM-L6-v2")
 
-# 2. Modèle spaCy de base
-nlp = spacy.load("en_core_web_sm")
+# 2. Modèle spaCy allégé (Désactivation de la grammaire pour exploser la vitesse)
+nlp = spacy.load("en_core_web_sm", disable=["tok2vec", "tagger", "parser", "attribute_ruler", "lemmatizer"])
 
 # 3. Enrichissement CTI via EntityRuler
-# On l'ajoute avant le NER standard pour prioriser nos règles métier
 if "entity_ruler" not in nlp.pipe_names:
-    ruler = nlp.add_pipe("entity_ruler", before="ner")
+    ruler = nlp.add_pipe("entity_ruler")
     
     cti_patterns = [
         # Vulnérabilités (ex: CVE-2021-40444)
         {"label": "CVE", "pattern": [{"TEXT": {"REGEX": r"(?i)CVE-\d{4}-\d{4,7}"}}]},
         # Hashes (MD5, SHA1, SHA256)
-        {"label": "HASH", "pattern": [{"TEXT": {"REGEX": r"(?i)\b[a-f0-9]{32,64}\b"}}]},
-        # Adresses IP (IPv4 basique)
-        {"label": "IP", "pattern": [{"TEXT": {"REGEX": r"\b(?:\d{1,3}\.){3}\d{1,3}\b"}}]},
-        
-        # Malwares standards et ceux observés avec Exotic Lily
-        {"label": "MALWARE", "pattern": [{"LOWER": "bumblebee"}]},
-        {"label": "MALWARE", "pattern": [{"LOWER": "bazarloader"}]},
-        {"label": "MALWARE", "pattern": [{"LOWER": "cobalt"}, {"LOWER": "strike"}]},
-        {"label": "MALWARE", "pattern": [{"LOWER": "sliver"}]},
-        {"label": "MALWARE", "pattern": [{"LOWER": "meterpreter"}]},
-        {"label": "MALWARE", "pattern": [{"LOWER": "trickbot"}]},
+        {"label": "HASH", "pattern": [{"TEXT": {"REGEX": r"\b[a-fA-F0-9]{32}\b|\b[a-fA-F0-9]{40}\b|\b[a-fA-F0-9]{64}\b"}}]},
+        # IP Addresses
+        {"label": "IP_ADDR", "pattern": [{"TEXT": {"REGEX": r"\b(?:\d{1,3}\.){3}\d{1,3}\b"}}]},
+        # Groupes et malwares (exemples)
+        {"label": "THREAT_ACTOR", "pattern": [{"LOWER": "apt28"}]},
+        {"label": "THREAT_ACTOR", "pattern": [{"LOWER": "lazarus"}]},
     ]
     
     # Intégration dynamique des Threat Actors depuis le MITRE
@@ -129,10 +126,13 @@ def semantic_chunking_improved(
     last_emb = None
     n_in_chunk: int = 0
 
-    embeddings = model.encode(paragraphs, convert_to_tensor=True)
+    # OPTIMISATION 1 : Vectorisation par lots (batching) au lieu d'un par un
+    embeddings = model.encode(paragraphs, batch_size=32, show_progress_bar=False, convert_to_tensor=True)
 
-    for i, p_i in enumerate(paragraphs):
-        doc = nlp(p_i)
+    # OPTIMISATION 2 : Traitement NLP spaCy par lots via nlp.pipe() (Gain de temps massif)
+    docs = list(nlp.pipe(paragraphs, batch_size=32))
+
+    for i, (p_i, doc) in enumerate(zip(paragraphs, docs)):
         l_i = len(p_i.split())
         entities_i = get_entities(doc)
         emb_i = embeddings[i]
