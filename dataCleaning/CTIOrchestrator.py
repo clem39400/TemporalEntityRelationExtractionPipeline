@@ -62,7 +62,7 @@ class ProcessedDocument:
     """Résultat du pipeline pour un fichier traité."""
     source_file: str
     prose_clean: str
-    ioc_block: str          # conservé pour transmission au LLM, non traité par regex
+    ioc_block: str
     paragraphs: list[str]
     chunks: list[str]
     error: Optional[str] = None
@@ -83,37 +83,55 @@ MIN_BLOCK_WORDS = 30
 
 def split_into_paragraphs(text: str) -> list[str]:
     """
-    Stage 1 du chunking.
-
-    1. Découpe sur \\n\\n et nettoie les \\n résiduels intra-bloc.
-    2. Fusionne les blocs trop courts (< MIN_BLOCK_WORDS mots) avec leur voisin
-       suivant — évite les micro-blocs dont l'embedding serait peu fiable.
-    3. Filtre les blocs vides ou inférieurs à 20 caractères.
+    Stage 1 du chunking (Adapté pour Markdown et Citations).
     """
-    # ── Étape 1 : nettoyage de base ───────────────────────────────────────────
-    raw = [p.strip() for p in text.split("\n\n")]
-    raw = [re.sub(r'\n+', ' ', p) for p in raw]
-    raw = [re.sub(r' +', ' ', p) for p in raw]
-    raw = [p for p in raw if len(p) >= 20]
+    MIN_BLOCK_WORDS = 30
 
-    # ── Étape 2 : fusion des blocs trop courts ────────────────────────────────
+    raw = [p.strip() for p in text.split("\n\n")]
+    raw = [p for p in raw if len(p) >= 10]
+
     merged: list[str] = []
     buffer = ""
+
     for block in raw:
         if buffer:
-            block = buffer + " " + block
+            block = buffer + "\n\n" + block
             buffer = ""
-        if len(block.split()) < MIN_BLOCK_WORDS:
-            buffer = block   # accumuler avec le suivant
+
+        # ── CORRECTION DES CITATIONS ──
+        prev_ends_with_quote = False
+        if merged and merged[-1].strip():
+            last_char = merged[-1].strip()[-1]
+            if last_char in ("'", "\"", "”", "’", "»", "«"):
+                prev_ends_with_quote = True
+
+        # NOUVELLE RÈGLE : Plus besoin de vérifier le "#".
+        # Si le bloc précédent est une citation, et que ce bloc est court (< 20 mots)
+        # on le fusionne immédiatement à reculons.
+        if prev_ends_with_quote and len(block.split()) < 20:
+            merged[-1] += "\n\n" + block
+            continue
+
+            # ── LOGIQUE STANDARD DE FUSION ──
+        if len(block.split()) < MIN_BLOCK_WORDS and not block.startswith(("#", "|", "-", "*")):
+            buffer = block
         else:
             merged.append(block)
-    if buffer:               # dernier bloc résiduel trop court
+
+    if buffer:
         if merged:
-            merged[-1] += " " + buffer
+            merged[-1] += "\n\n" + buffer
         else:
             merged.append(buffer)
 
-    return merged
+    # ── FILTRAGE DU BRUIT ──
+    final_merged = []
+    for m in merged:
+        lines = m.split('\n')
+        if any(not l.strip().startswith('#') for l in lines if l.strip()):
+            final_merged.append(m)
+
+    return final_merged
 
 
 def save_results(doc: ProcessedDocument, output_dir: str) -> None:
