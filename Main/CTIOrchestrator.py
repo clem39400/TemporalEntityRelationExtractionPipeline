@@ -25,12 +25,13 @@ Usage CLI :
 """
 
 import os
-import re
 import json
 import argparse
 import logging
 from dataclasses import dataclass
 from typing import Optional
+from concurrent.futures import ThreadPoolExecutor
+from LLMEngine import LLMEngine
 
 # ── Imports internes ──────────────────────────────────────────────────────────
 from CTITextCleaner import CTITextCleaner
@@ -254,12 +255,13 @@ SUPPORTED_EXTENSIONS = {".pdf", ".txt"}
 
 
 def process_directory(
-    input_dir: str,
-    cleaner: CTITextCleaner,
-    chunking_cfg: ChunkingConfig,
-    output_dir: Optional[str] = None,
+        input_dir: str,
+        cleaner: CTITextCleaner,
+        chunking_cfg: ChunkingConfig,
+        output_dir: Optional[str] = None,
+        llm_engine: Optional[LLMEngine] = None
 ) -> list[ProcessedDocument]:
-    """Applique process_single_file à tous les fichiers supportés du dossier."""
+    """Applique process_single_file à tous les fichiers et lance le LLM en parallèle."""
     files = [
         os.path.join(input_dir, f)
         for f in os.listdir(input_dir)
@@ -272,9 +274,21 @@ def process_directory(
 
     log.info(f"{len(files)} fichier(s) détecté(s) dans {input_dir}")
     results = []
-    for fp in sorted(files):
-        result = process_single_file(fp, cleaner, chunking_cfg, output_dir)
-        results.append(result)
+
+    # max_workers = 3 signifie que 3 appels LLM peuvent tourner en même temps maximum.
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        for fp in sorted(files):
+            # Le thread principal s'occupe du CPU (nettoyage + spaCy/Embedding)
+            result = process_single_file(fp, cleaner, chunking_cfg, output_dir)
+            results.append(result)
+
+            # Si le fichier a généré un JSON valide, on l'envoie au ThreadPool (I/O asynchrone)
+            if not result.error and output_dir and llm_engine:
+                base = os.path.splitext(os.path.basename(result.source_file))[0]
+                json_path = os.path.join(output_dir, f"{base}_processed.json")
+
+                # Soumission de la tâche en arrière-plan
+                executor.submit(llm_engine.process_json_file, json_path)
 
     ok = [r for r in results if not r.error]
     total_chunks = sum(len(r.chunks) for r in ok)
@@ -291,38 +305,27 @@ def process_directory(
 # ── CLI ───────────────────────────────────────────────────────────────────────
 
 def parse_args():
-    _defaults = ChunkingConfig()   # source de vérité unique
-    parser = argparse.ArgumentParser(
-        description="Pipeline CTI : nettoyage + chunking sémantique"
-    )
-    parser.add_argument(
-        "--input", "-i", required=True,
-        help="Fichier unique (.pdf/.txt) ou dossier contenant des rapports CTI"
-    )
-    parser.add_argument(
-        "--output", "-o", default=None,
-        help="Dossier de sortie pour les JSON (optionnel)"
-    )
-    parser.add_argument(
-        "--theta_s", type=float, default=_defaults.theta_s,
-        help=f"Seuil similarité sémantique (défaut : {_defaults.theta_s})"
-    )
-    parser.add_argument(
-        "--theta_e", type=float, default=_defaults.theta_e,
-        help=f"Seuil overlap entités Jaccard (défaut : {_defaults.theta_e})"
-    )
-    parser.add_argument(
-        "--l_max", type=int, default=_defaults.l_max,
-        help=f"Longueur max d'un chunk en mots (défaut : {_defaults.l_max})"
-    )
-    return parser.parse_args()
+    _defaults = ChunkingConfig()
+    parser = argparse.ArgumentParser(description="Pipeline CTI : nettoyage + chunking + LLM")
+    parser.add_argument("--input", "-i", required=True, help="Fichier unique ou dossier")
+    parser.add_argument("--output", "-o", default=None, help="Dossier de sortie JSON (chunks)")
 
+    # NOUVEL ARGUMENT
+    parser.add_argument("--llm_output", default="./llm_output", help="Dossier de sortie pour les graphes extraits par le LLM")
+
+    parser.add_argument("--theta_s", type=float, default=_defaults.theta_s)
+    parser.add_argument("--theta_e", type=float, default=_defaults.theta_e)
+    parser.add_argument("--l_max", type=int, default=_defaults.l_max)
+    return parser.parse_args()
 
 def main():
     args = parse_args()
 
     log.info("Initialisation du pipeline de nettoyage (Presidio + spaCy)...")
     cleaner = CTITextCleaner()
+
+    # Initialisation du moteur LLM
+    llm_engine = LLMEngine(output_dir=args.llm_output)
 
     cfg = ChunkingConfig(
         theta_s=args.theta_s,
@@ -335,20 +338,23 @@ def main():
     if os.path.isfile(input_path):
         result = process_single_file(input_path, cleaner, cfg, args.output)
 
+        # Lancement manuel du LLM pour un fichier unique s'il y a un dossier de sortie
+        if not result.error and args.output:
+            base = os.path.splitext(os.path.basename(result.source_file))[0]
+            json_path = os.path.join(args.output, f"{base}_processed.json")
+            llm_engine.process_json_file(json_path)
+
         print(f"\n{'═' * 60}")
         print(f"Fichier : {result.source_file}")
         print(f"{'═' * 60}")
-        for i, chunk in enumerate(result.chunks, 1):
-            preview = chunk[:120].replace("\n", " ")
-            print(f"\n[Chunk {i:02d}] {preview}...")
 
     elif os.path.isdir(input_path):
-        process_directory(input_path, cleaner, cfg, args.output)
+        # On passe llm_engine à process_directory
+        process_directory(input_path, cleaner, cfg, args.output, llm_engine)
 
     else:
         log.error(f"Chemin invalide : {input_path}")
         raise SystemExit(1)
-
 
 if __name__ == "__main__":
     main()
