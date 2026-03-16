@@ -309,9 +309,14 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Pipeline CTI : nettoyage + chunking + LLM")
     parser.add_argument("--input", "-i", required=True, help="Fichier unique ou dossier")
     parser.add_argument("--output", "-o", default=None, help="Dossier de sortie JSON (chunks)")
+    parser.add_argument("--llm_output", default="./llm_output", help="Dossier de sortie pour les graphes")
 
-    # NOUVEL ARGUMENT
-    parser.add_argument("--llm_output", default="./llm_output", help="Dossier de sortie pour les graphes extraits par le LLM")
+    # AJOUTER CET ARGUMENT
+    parser.add_argument(
+        "--rocade",
+        default="C:/Users/cleme/IdeaProjects/TemporalEntityRelationExtractionPipeline/ROCADE/ROCADe - ER26.json",
+        help="Chemin vers le fichier JSON de l'ontologie ROCADE"
+    )
 
     parser.add_argument("--theta_s", type=float, default=_defaults.theta_s)
     parser.add_argument("--theta_e", type=float, default=_defaults.theta_e)
@@ -321,11 +326,16 @@ def parse_args():
 def main():
     args = parse_args()
 
-    log.info("Initialisation du pipeline de nettoyage (Presidio + spaCy)...")
+    relations_dir = args.llm_output if args.llm_output else "./relations"
+
+    log.info("Initialisation du pipeline...")
     cleaner = CTITextCleaner()
 
-    # Initialisation du moteur LLM
-    llm_engine = LLMEngine(output_dir=args.llm_output)
+    # On passe le dossier 'relations' au moteur LLM
+    llm_engine = LLMEngine(
+        output_dir=relations_dir,
+        rocade_json_path=args.rocade
+    )
 
     cfg = ChunkingConfig(
         theta_s=args.theta_s,
@@ -336,25 +346,20 @@ def main():
     input_path = args.input
 
     if os.path.isfile(input_path):
-        result = process_single_file(input_path, cleaner, cfg, args.output)
+        # 1. Traitement du document (retourne un objet ProcessedDocument)
+        doc = process_single_file(input_path, cleaner, cfg, args.output)
 
-        # Lancement manuel du LLM pour un fichier unique s'il y a un dossier de sortie
-        if not result.error and args.output:
-            base = os.path.splitext(os.path.basename(result.source_file))[0]
+        # 2. Vérification et envoi au LLM
+        if not doc.error and args.output:
+            # On reconstruit le chemin du JSON sauvegardé par save_results
+            base = os.path.splitext(os.path.basename(doc.source_file))[0]
             json_path = os.path.join(args.output, f"{base}_processed.json")
-            llm_engine.process_json_file(json_path)
 
-        print(f"\n{'═' * 60}")
-        print(f"Fichier : {result.source_file}")
-        print(f"{'═' * 60}")
-
-    elif os.path.isdir(input_path):
-        # On passe llm_engine à process_directory
-        process_directory(input_path, cleaner, cfg, args.output, llm_engine)
-
-    else:
-        log.error(f"Chemin invalide : {input_path}")
-        raise SystemExit(1)
+            if os.path.exists(json_path):
+                log.info(f"Envoi des chunks au LLM pour extraction : {json_path}")
+                llm_engine.process_json_file(json_path)
+            else:
+                log.error(f"Fichier de chunks introuvable pour le LLM : {json_path}")
 
 if __name__ == "__main__":
     main()
