@@ -12,30 +12,21 @@ Flux :
 
     Le bloc IoC est séparé de la prose mais n'est PAS traité par regex :
     l'extraction des entités et relations sera assurée par le LLM en aval.
-
-Usage CLI :
-    # Fichier unique
-    python CTIOrchestrator.py --input report.pdf
-
-    # Dossier entier avec sauvegarde JSON
-    python CTIOrchestrator.py --input ./reports --output ./chunks_output
-
-    # Seuils personnalisés
-    python CTIOrchestrator.py --input report.pdf --theta_s 0.3 --theta_e 0.1 --l_max 600
 """
 
 import os
 import json
 import argparse
+import re
 import logging
 from dataclasses import dataclass
 from typing import Optional
 from concurrent.futures import ThreadPoolExecutor
-from LLMEngine import LLMEngine
 
 # ── Imports internes ──────────────────────────────────────────────────────────
 from CTITextCleaner import CTITextCleaner
 from SemanticChunk import semantic_chunking_improved
+from LLMEngine import LLMEngine
 
 # ── Logging ───────────────────────────────────────────────────────────────────
 logging.basicConfig(
@@ -55,7 +46,7 @@ logging.getLogger("presidio-analyzer").setLevel(logging.ERROR)
 class ChunkingConfig:
     """Hyperparamètres de l'algorithme de chunking sémantique (SC-LKM)."""
     theta_s: float = 0.2    # seuil similarité cosinus
-    theta_e: float = 0.15    # 0.0 = désactivé (Jaccard < 0 impossible)
+    theta_e: float = 0.15   # seuil overlap entités Jaccard
     l_max: int = 400        # longueur max d'un chunk en mots
 
 @dataclass
@@ -78,16 +69,9 @@ class ProcessedDocument:
 
 # ── Utilitaires ───────────────────────────────────────────────────────────────
 
-# Blocs PDF < MIN_BLOCK_WORDS mots sont fusionnés avec leur voisin
-# pour garantir des embeddings fiables dans le chunker sémantique.
-MIN_BLOCK_WORDS = 30
-
 def split_into_paragraphs(text: str) -> list[str]:
-    """
-    Stage 1 du chunking (Adapté pour Markdown et Citations).
-    """
+    """Stage 1 du chunking (Découpage structurel + fusion des blocs courts)."""
     MIN_BLOCK_WORDS = 30
-
     raw = [p.strip() for p in text.split("\n\n")]
     raw = [p for p in raw if len(p) >= 10]
 
@@ -99,21 +83,17 @@ def split_into_paragraphs(text: str) -> list[str]:
             block = buffer + "\n\n" + block
             buffer = ""
 
-        # ── CORRECTION DES CITATIONS ──
+        # Gestion des citations
         prev_ends_with_quote = False
         if merged and merged[-1].strip():
             last_char = merged[-1].strip()[-1]
             if last_char in ("'", "\"", "”", "’", "»", "«"):
                 prev_ends_with_quote = True
 
-        # NOUVELLE RÈGLE : Plus besoin de vérifier le "#".
-        # Si le bloc précédent est une citation, et que ce bloc est court (< 20 mots)
-        # on le fusionne immédiatement à reculons.
         if prev_ends_with_quote and len(block.split()) < 20:
             merged[-1] += "\n\n" + block
             continue
 
-            # ── LOGIQUE STANDARD DE FUSION ──
         if len(block.split()) < MIN_BLOCK_WORDS and not block.startswith(("#", "|", "-", "*")):
             buffer = block
         else:
@@ -125,18 +105,51 @@ def split_into_paragraphs(text: str) -> list[str]:
         else:
             merged.append(buffer)
 
-    # ── FILTRAGE DU BRUIT ──
-    final_merged = []
-    for m in merged:
-        lines = m.split('\n')
-        if any(not l.strip().startswith('#') for l in lines if l.strip()):
-            final_merged.append(m)
+    return merged
 
-    return final_merged
+def is_semantic_content(text: str) -> bool:
+    """
+    Filtre avancé pour éliminer les sommaires, listes de contributeurs, et métadonnées.
+    """
+    text_clean = text.strip()
+    words = text_clean.split()
 
+    # 1. Filtre de taille (Trop court)
+    # On conserve les titres Markdown qui donnent du contexte
+    if len(words) < 10 and not text_clean.startswith(("#", "-", "*")):
+        return False
 
-def save_results(doc: ProcessedDocument, output_dir: str) -> None:
-    """Sauvegarde les chunks en JSON (un fichier par document source)."""
+    # 2. Rejet par mot-clé (En-têtes de sommaires)
+    lower_text = text_clean.lower()
+    if lower_text.startswith("table of contents") or lower_text.startswith("## contents") or lower_text.startswith("sommaire"):
+        return False
+
+    lines = [l.strip() for l in text_clean.split('\n') if l.strip()]
+
+    # 3. Détection des Tables des Matières (TOC)
+    # Cherche les lignes qui finissent par un numéro de page ex: "| Titre | 4 |" ou "Titre .... 4"
+    toc_pattern = re.compile(r'(\|\s*\d+\s*\|?$|\.{3,}\s*\d+\s*\|?$)')
+    toc_lines = sum(1 for l in lines if toc_pattern.search(l))
+
+    # Si plus de 30% du bloc ressemble à un sommaire, on jette
+    if len(lines) > 2 and (toc_lines / len(lines)) > 0.3:
+        return False
+
+        # 4. Détection des listes de noms / sponsors / adresses
+    # Une vraie narration cyber contient de la ponctuation de fin de phrase (. ! ?)
+    # Si on a un bloc de plus de 25 mots avec 1 seul (ou 0) point, c'est généralement une liste ou un copyright.
+    sentences = [s for s in re.split(r'[.!?]', text_clean) if len(s.strip()) > 0]
+    if len(words) > 25 and len(sentences) <= 1:
+        return False
+
+    # 5. Détection des blocs de pur copyright ou d'index
+    if "all rights reserved" in lower_text or "issn:" in lower_text:
+        return False
+
+    return True
+
+def save_results(doc: ProcessedDocument, output_dir: str) -> str:
+    """Sauvegarde les chunks en JSON et retourne le chemin du fichier créé."""
     os.makedirs(output_dir, exist_ok=True)
     base = os.path.splitext(os.path.basename(doc.source_file))[0]
     out_path = os.path.join(output_dir, f"{base}_processed.json")
@@ -153,95 +166,47 @@ def save_results(doc: ProcessedDocument, output_dir: str) -> None:
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
 
-    log.info(f"  → Sauvegardé : {out_path}")
+    log.info(f"  → Chunks sauvegardés : {out_path}")
+    return out_path
 
 
 # ── Traitement d'un fichier ───────────────────────────────────────────────────
 
 def process_single_file(
-    file_path: str,
-    cleaner: CTITextCleaner,
-    chunking_cfg: ChunkingConfig,
-    output_dir: Optional[str] = None,
+        file_path: str,
+        cleaner: CTITextCleaner,
+        chunking_cfg: ChunkingConfig,
+        output_dir: Optional[str] = None,
 ) -> ProcessedDocument:
-    """
-    Orchestre le pipeline complet pour un fichier :
-
-        Étape 1 — CTITextCleaner.process_file()
-                  extraction → normalisation → séparation IoC/prose
-                  → sanitisation IoCs → anonymisation PII → boilerplate
-
-        Étape 2 — split_into_paragraphs()
-                  Stage 1 chunking : découpage structurel + fusion blocs courts
-
-        Étape 3 — semantic_chunking_improved()
-                  Stage 2 chunking : raffinement sémantique
-
-        Étape 4 — save_results() [optionnel]
-                  Sérialisation JSON si --output fourni
-
-    L'extraction des entités et relations (NER + RE) est assurée en aval par le LLM.
-    """
+    """Orchestre le nettoyage et le chunking sémantique pour un fichier."""
     log.info(f"Traitement : {file_path}")
 
-    # ── Étape 1 : Nettoyage ───────────────────────────────────────────────────
     try:
         prose_clean, ioc_block = cleaner.process_file(file_path)
     except Exception as e:
         log.error(f"  Erreur nettoyage : {e}")
-        return ProcessedDocument(
-            source_file=file_path, prose_clean="", ioc_block="",
-            paragraphs=[], chunks=[], error=str(e)
-        )
+        return ProcessedDocument(file_path, "", "", [], [], error=str(e))
 
-    if not prose_clean:
-        log.warning(f"  Texte vide après nettoyage : {file_path}")
-        return ProcessedDocument(
-            source_file=file_path, prose_clean="", ioc_block="",
-            paragraphs=[], chunks=[], error="empty_after_cleaning"
-        )
-
-    # ── Étape 2 : Paragraphes — Stage 1 ──────────────────────────────────────
+    # 1. Découpage brut
     paragraphs = split_into_paragraphs(prose_clean)
-    log.info(f"  {len(paragraphs)} paragraphes extraits")
 
-    if not paragraphs:
-        log.warning(f"  Aucun paragraphe détecté : {file_path}")
-        return ProcessedDocument(
-            source_file=file_path, prose_clean=prose_clean, ioc_block=ioc_block,
-            paragraphs=[], chunks=[], error="no_paragraphs"
-        )
+    # 2. NOUVEAU : Filtrage du bruit sémantique AVANT le chunking
+    paragraphs_filtered = [p for p in paragraphs if is_semantic_content(p)]
+    log.info(f"  Paragraphes filtrés : {len(paragraphs)} -> {len(paragraphs_filtered)} utiles")
 
-    # ── Étape 3 : Chunking sémantique — Stage 2 ──────────────────────────────
     try:
         chunks = semantic_chunking_improved(
-            paragraphs=paragraphs,
+            paragraphs=paragraphs_filtered, # On utilise la liste nettoyée
             theta_s=chunking_cfg.theta_s,
             theta_e=chunking_cfg.theta_e,
             l_max=chunking_cfg.l_max,
         )
-        log.info(
-            f"  {len(chunks)} chunks produits "
-            f"(θs={chunking_cfg.theta_s}, θe={chunking_cfg.theta_e}, "
-            f"L_max={chunking_cfg.l_max})"
-        )
     except Exception as e:
         log.error(f"  Erreur chunking : {e}")
-        return ProcessedDocument(
-            source_file=file_path, prose_clean=prose_clean, ioc_block=ioc_block,
-            paragraphs=paragraphs, chunks=[], error=str(e)
-        )
+        return ProcessedDocument(file_path, prose_clean, ioc_block, paragraphs_filtered, [], error=str(e))
 
-    # ── Construction du résultat ──────────────────────────────────────────────
-    doc = ProcessedDocument(
-        source_file=file_path,
-        prose_clean=prose_clean,
-        ioc_block=ioc_block,
-        paragraphs=paragraphs,
-        chunks=chunks,
-    )
+    doc = ProcessedDocument(file_path, prose_clean, ioc_block, paragraphs_filtered, chunks)
 
-    # ── Étape 4 : Sauvegarde (optionnelle) ───────────────────────────────────
     if output_dir:
         save_results(doc, output_dir)
 
@@ -253,15 +218,8 @@ def process_single_file(
 
 SUPPORTED_EXTENSIONS = {".pdf", ".txt"}
 
-
-def process_directory(
-        input_dir: str,
-        cleaner: CTITextCleaner,
-        chunking_cfg: ChunkingConfig,
-        output_dir: Optional[str] = None,
-        llm_engine: Optional[LLMEngine] = None
-) -> list[ProcessedDocument]:
-    """Applique process_single_file à tous les fichiers et lance le LLM en parallèle."""
+def process_directory(input_dir, cleaner, chunking_cfg, output_dir, llm_engine):
+    """Parcourt un dossier et lance le traitement LLM en parallèle via Threads."""
     files = [
         os.path.join(input_dir, f)
         for f in os.listdir(input_dir)
@@ -269,97 +227,58 @@ def process_directory(
     ]
 
     if not files:
-        log.warning(f"Aucun fichier .pdf/.txt trouvé dans : {input_dir}")
+        log.warning(f"Aucun fichier supporté trouvé dans : {input_dir}")
         return []
 
-    log.info(f"{len(files)} fichier(s) détecté(s) dans {input_dir}")
-    results = []
+    log.info(f"{len(files)} fichier(s) détecté(s). Lancement du pipeline...")
 
-    # max_workers = 3 signifie que 3 appels LLM peuvent tourner en même temps maximum.
-    with ThreadPoolExecutor(max_workers=3) as executor:
+    with ThreadPoolExecutor(max_workers=1) as executor:
         for fp in sorted(files):
-            # Le thread principal s'occupe du CPU (nettoyage + spaCy/Embedding)
-            result = process_single_file(fp, cleaner, chunking_cfg, output_dir)
-            results.append(result)
+            doc = process_single_file(fp, cleaner, chunking_cfg, output_dir)
 
-            # Si le fichier a généré un JSON valide, on l'envoie au ThreadPool (I/O asynchrone)
-            if not result.error and output_dir and llm_engine:
-                base = os.path.splitext(os.path.basename(result.source_file))[0]
+            if not doc.error and output_dir and llm_engine:
+                base = os.path.splitext(os.path.basename(doc.source_file))[0]
                 json_path = os.path.join(output_dir, f"{base}_processed.json")
-
-                # Soumission de la tâche en arrière-plan
+                # Envoi asynchrone au LLM
                 executor.submit(llm_engine.process_json_file, json_path)
 
-    ok = [r for r in results if not r.error]
-    total_chunks = sum(len(r.chunks) for r in ok)
-    n_errors = sum(1 for r in results if r.error)
-    log.info(
-        f"\n{'─' * 50}\n"
-        f"Résumé : {len(ok)}/{len(results)} fichiers OK | "
-        f"{total_chunks} chunks au total | "
-        f"{n_errors} erreurs"
-    )
-    return results
 
-
-# ── CLI ───────────────────────────────────────────────────────────────────────
+# ── CLI & Main ────────────────────────────────────────────────────────────────
 
 def parse_args():
     _defaults = ChunkingConfig()
-    parser = argparse.ArgumentParser(description="Pipeline CTI : nettoyage + chunking + LLM")
-    parser.add_argument("--input", "-i", required=True, help="Fichier unique ou dossier")
-    parser.add_argument("--output", "-o", default=None, help="Dossier de sortie JSON (chunks)")
-    parser.add_argument("--llm_output", default="./llm_output", help="Dossier de sortie pour les graphes")
-
-    # AJOUTER CET ARGUMENT
-    parser.add_argument(
-        "--rocade",
-        default="C:/Users/cleme/IdeaProjects/TemporalEntityRelationExtractionPipeline/ROCADE/ROCADe - ER26.json",
-        help="Chemin vers le fichier JSON de l'ontologie ROCADE"
-    )
-
+    parser = argparse.ArgumentParser(description="Pipeline CTI : Nettoyage + Chunking + LLM")
+    parser.add_argument("--input", "-i", required=True, help="Fichier ou dossier d'entrée")
+    parser.add_argument("--output", "-o", required=True, help="Dossier pour les chunks JSON")
+    parser.add_argument("--llm_output", default="./relations", help="Dossier pour les relations extraites")
+    parser.add_argument("--rocade", required=True, help="Chemin vers l'ontologie ROCADE JSON")
     parser.add_argument("--theta_s", type=float, default=_defaults.theta_s)
     parser.add_argument("--theta_e", type=float, default=_defaults.theta_e)
     parser.add_argument("--l_max", type=int, default=_defaults.l_max)
     return parser.parse_args()
 
+
 def main():
     args = parse_args()
+    log.info("Démarrage du pipeline CTI...")
 
-    relations_dir = args.llm_output if args.llm_output else "./relations"
-
-    log.info("Initialisation du pipeline...")
     cleaner = CTITextCleaner()
+    llm_engine = LLMEngine(output_dir=args.llm_output, rocade_json_path=args.rocade)
+    cfg = ChunkingConfig(theta_s=args.theta_s, theta_e=args.theta_e, l_max=args.l_max)
 
-    # On passe le dossier 'relations' au moteur LLM
-    llm_engine = LLMEngine(
-        output_dir=relations_dir,
-        rocade_json_path=args.rocade
-    )
-
-    cfg = ChunkingConfig(
-        theta_s=args.theta_s,
-        theta_e=args.theta_e,
-        l_max=args.l_max,
-    )
-
-    input_path = args.input
-
-    if os.path.isfile(input_path):
-        # 1. Traitement du document (retourne un objet ProcessedDocument)
-        doc = process_single_file(input_path, cleaner, cfg, args.output)
-
-        # 2. Vérification et envoi au LLM
-        if not doc.error and args.output:
-            # On reconstruit le chemin du JSON sauvegardé par save_results
+    if os.path.isfile(args.input):
+        log.info("Mode fichier unique.")
+        doc = process_single_file(args.input, cleaner, cfg, args.output)
+        if not doc.error:
             base = os.path.splitext(os.path.basename(doc.source_file))[0]
             json_path = os.path.join(args.output, f"{base}_processed.json")
+            llm_engine.process_json_file(json_path)
 
-            if os.path.exists(json_path):
-                log.info(f"Envoi des chunks au LLM pour extraction : {json_path}")
-                llm_engine.process_json_file(json_path)
-            else:
-                log.error(f"Fichier de chunks introuvable pour le LLM : {json_path}")
+    elif os.path.isdir(args.input):
+        log.info(f"Mode répertoire : {args.input}")
+        process_directory(args.input, cleaner, cfg, args.output, llm_engine)
+    else:
+        log.error(f"Entrée invalide : {args.input}")
 
 if __name__ == "__main__":
     main()
