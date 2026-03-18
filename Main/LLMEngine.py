@@ -1,64 +1,79 @@
 """
 LLMEngine.py
 ------------
-Module d'inférence LLM optimisé pour Ollama local (Qwen 2.5 14B).
-Extraction d'entités et relations avec contraintes de schéma strictes et cache (API Chat).
+Module d'inférence LLM optimisé pour l'API Google Gemini.
+Extraction d'entités et relations avec contraintes de schéma strictes (JSON mode).
 """
 
 import json
 import os
 import logging
-import requests
 import re
+import google.generativeai as genai
+from google.generativeai.types import HarmCategory, HarmBlockThreshold
 
 log = logging.getLogger(__name__)
 
 class LLMEngine:
-    # On définit Qwen 2.5 14B comme modèle par défaut
-    def __init__(self, output_dir: str, rocade_json_path: str, model_name: str = "qwen2.5:14b"):
+    def __init__(self, output_dir: str, rocade_json_path: str, model_name: str = "gemini-1.5-pro"):
         self.output_dir = output_dir
         self.model_name = model_name
-        # Utilisation de l'API Chat locale pour profiter du cache du prompt système
-        self.api_url = "http://localhost:11434/api/chat"
         os.makedirs(self.output_dir, exist_ok=True)
 
         log.info(f"[LLM] Chargement de l'ontologie depuis {rocade_json_path}...")
         self.rocade_context = self.load_rocade_schema(rocade_json_path)
 
+        # Configuration de l'API Gemini avec la clé d'environnement
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            log.error("[LLM] La variable d'environnement GEMINI_API_KEY n'est pas définie.")
+        genai.configure(api_key=api_key)
+
     def call_llm(self, chunk_text: str, system_prompt: str) -> dict:
-        """Appel à l'API locale d'Ollama avec forçage JSON et température à 0."""
-        payload = {
-            "model": self.model_name,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Voici le texte à analyser :\n{chunk_text}"}
-            ],
-            "stream": False,
-            "format": "json",
-            "options": {
-                "temperature": 0.0 # Empêche l'hallucination de relations
-            }
+        """Appel à l'API Gemini avec forçage JSON et température à 0."""
+
+        # Configuration pour forcer une sortie déterministe et structurée en JSON
+        generation_config = genai.GenerationConfig(
+            temperature=0.0, # Empêche l'hallucination de relations
+            response_mime_type="application/json"
+        )
+
+        # Désactivation des filtres de sécurité pour la Cyber Threat Intelligence
+        # (Les rapports CTI contiennent naturellement du vocabulaire lié aux attaques)
+        safety_settings = {
+            HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+            HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
         }
 
-        try:
-            # Timeout fixé à 180s pour laisser le temps au modèle 14B de répondre
-            response = requests.post(self.api_url, json=payload, timeout=180)
-            response.raise_for_status()
+        # Instanciation du modèle avec le prompt système injecté
+        model = genai.GenerativeModel(
+            model_name=self.model_name,
+            system_instruction=system_prompt,
+            safety_settings=safety_settings
+        )
 
-            result = response.json()
-            generated_text = result.get("message", {}).get("content", "")
+        try:
+            # Appel à l'API
+            response = model.generate_content(
+                f"Voici le texte à analyser :\n{chunk_text}",
+                generation_config=generation_config
+            )
+
+            generated_text = response.text
 
             try:
                 return json.loads(generated_text)
             except json.JSONDecodeError:
-                # Tentative de récupération si le JSON est mal formatté
+                # Tentative de récupération au cas où (très rare avec response_mime_type="application/json")
                 match = re.search(r'\{.*\}', generated_text, re.DOTALL)
                 if match:
                     return json.loads(match.group(0))
                 return {"entities": [], "relations": [], "temporal_dependencies": [], "error": "JSON_DECODE_ERROR"}
 
         except Exception as e:
-            log.error(f"[LLM] Erreur lors de l'appel à Ollama ({self.model_name}) : {e}")
+            log.error(f"[LLM] Erreur lors de l'appel à Gemini ({self.model_name}) : {e}")
             return {"entities": [], "relations": [], "temporal_dependencies": [], "error": str(e)}
 
     def process_json_file(self, json_path: str):
@@ -109,8 +124,11 @@ Réponse attendue :
 4. Pour les dépendances temporelles, utilise : BEFORE, AFTER, ou SIMULTANEOUS.
 5. Réponds uniquement par un objet JSON. Si aucune menace n'est détectée, renvoie des listes vides.
 """
-
+        print("skip appel llm pour le momebntnt, on se concentre sur le prompt système et la structure du code")
+        """
         for i, chunk in enumerate(chunks, 1):
+
+
             log.info(f"[LLM] Inférence chunk {i}/{len(chunks)} via Qwen 2.5 14B...")
             response_data = self.call_llm(chunk_text=chunk, system_prompt=system_prompt)
 
@@ -126,8 +144,8 @@ Réponse attendue :
         payload = {"source_file": source_file, "graph_data": llm_results}
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
-
-        log.info(f"[LLM] ✓ Extraction terminée : {out_path}")
+        
+        log.info(f"[LLM] ✓ Extraction terminée : {out_path}")"""
 
     def load_rocade_schema(self, json_path: str) -> str:
         """Extrait récursivement les classes et relations du fichier ROCADE JSON."""

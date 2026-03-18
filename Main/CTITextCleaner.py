@@ -1,37 +1,50 @@
 import os
 import re
 import unicodedata
+import fitz  # PyMuPDF : Ultra rapide, aucune IA locale, 0 crash RAM
 from collections import Counter
-from docling.document_converter import DocumentConverter
 from MitreWhitelistLoader import MitreWhitelistLoader
 
 class CTITextCleaner:
     def __init__(self, whitelist_ttl_days: int = 7):
-        # Chargement de la whitelist dynamique
         self.cti_whitelist: set[str] = MitreWhitelistLoader(
             ttl_days=whitelist_ttl_days
         ).get_whitelist()
 
-        # Initialisation du convertisseur IBM Docling
-        self.converter = DocumentConverter()
-
-    # ── 1. Extraction (Propulsée par Docling) ─────────────────────────────────
+    # ── 1. Extraction (100% PyMuPDF) ──────────────────────────────────────────
 
     def extract_text(self, file_path: str) -> str:
         """
-        Extrait le texte structuré en Markdown via IBM Docling.
-        Gère nativement les tableaux, listes, et ignore les en-têtes/pieds de page.
+        Extraction robuste et instantanée avec PyMuPDF.
+        Utilise la détection de blocs pour reconstituer de vrais paragraphes.
         """
         if not os.path.isfile(file_path):
             raise FileNotFoundError(f"Fichier introuvable : {file_path}")
 
+        text_paragraphs = []
         try:
-            # Conversion du document (PDF, Word, etc.)
-            result = self.converter.convert(file_path)
-            # Export direct en Markdown pour préserver la structure (titres, tableaux)
-            return result.document.export_to_markdown()
+            with fitz.open(file_path) as doc:
+                for page in doc:
+                    # 'blocks' extrait intelligemment les vrais paragraphes du PDF
+                    blocks = page.get_text("blocks")
+                    for b in blocks:
+                        # b[4] contient le texte brut du bloc
+                        text = b[4].strip()
+
+                        if text:
+                            # On remplace les sauts de ligne "visuels" (au milieu d'une phrase) par des espaces
+                            text = text.replace('\n', ' ')
+
+                            # Petit filtre pour ignorer les artefacts (numéros de page isolés, etc.)
+                            if len(text) > 15:
+                                text_paragraphs.append(text)
+
+            # On rejoint les vrais paragraphes avec un double saut de ligne
+            # pour que SemanticChunk.py puisse les séparer correctement.
+            return "\n\n".join(text_paragraphs)
+
         except Exception as e:
-            raise RuntimeError(f"Échec de la conversion Docling pour {file_path}: {str(e)}")
+            raise RuntimeError(f"Échec total de l'extraction PyMuPDF pour {file_path}: {e}")
 
     # ── 2. Normalisation ──────────────────────────────────────────────────────
 
@@ -43,36 +56,41 @@ class CTITextCleaner:
     # ── 3. Isolation et Filtrage ──────────────────────────────────────────────
 
     def clean_boilerplate(self, text: str) -> str:
-        # On garde tes filtres CTI spécifiques, mais on enlève ceux liés
-        # aux numéros de page car Docling s'en charge généralement.
         text = re.sub(r'(?i)May Cyber Threat Intelligence monthly report.*?\d{4}-\d{2}-\d{2}', '', text)
         text = re.sub(r'(?i)CERT aDvens\s*-\s*CTI\s*Advens.*?(?:Paris|\[\])', '', text)
         text = re.sub(r'(?i)\bTLP:\s*(RED|AMBER(?:[-+]\w+)?|GREEN|CLEAR|WHITE)\b', '', text)
-
         text = re.sub(r'(?i)^\s*(?:Table\s+of\s+contents?|Sommaire)\s*$', '', text, flags=re.MULTILINE)
         text = re.sub(r'(?i)all rights reserved.*?\.', '', text)
         text = re.sub(r'(?i)©\s*\d{4}.*?\.', '', text)
 
-        # Suppression du bruit très répétitif
-        lines = text.split('\n')
-        line_counts = Counter(l.strip() for l in lines if l.strip())
-        repeated_noise = {l for l, c in line_counts.items() if c > 3 and len(l) < 250}
-        cleaned_lines = [l for l in lines if l.strip() not in repeated_noise]
+        # CORRECTION : On découpe par PARAGRAPHE (\n\n) et non par ligne
+        paragraphs = text.split('\n\n')
+        para_counts = Counter(p.strip() for p in paragraphs if p.strip())
 
-        result = '\n'.join(cleaned_lines)
+        # Suppression du bruit (pieds de page répétés)
+        repeated_noise = {p for p, c in para_counts.items() if c > 3 and len(p) < 250}
+        cleaned_paras = [p for p in paragraphs if p.strip() not in repeated_noise]
+
+        # On reconstruit avec de VRAIS séparateurs de paragraphes
+        result = '\n\n'.join(cleaned_paras)
         return re.sub(r' +', ' ', result)
 
     def separate_ioc_block(self, text: str) -> tuple[str, str]:
-        # La regex reste identique, elle marchera encore mieux sur du Markdown propre
         ioc_block = ""
+        # CORRECTION : On exige un saut de ligne AVANT et APRES pour être sûr que c'est un TITRE
+        # et pas juste une mention au milieu d'une phrase.
         match = re.search(
-            r'((?:Indicators?\s+of\s+Compromise|IoC[s]?|INDICATORS|NETWORK ARTIFACTS|HOST ARTIFACTS)\b.*)',
+            r'\n\s*#*\s*((?:Indicators?\s+of\s+Compromise|IoC[s]?|INDICATORS|NETWORK ARTIFACTS|HOST ARTIFACTS)\b.*?)\n(.*)',
             text,
             re.IGNORECASE | re.DOTALL
         )
         if match:
-            ioc_block = match.group(1).strip()
-            text = text[:match.start()].strip()
+            # On vérifie que ce n'est pas déclenché trop tôt (ex: Sommaire)
+            # Un vrai bloc IoC se trouve généralement à la toute fin du rapport.
+            if match.start() > (len(text) * 0.5):
+                ioc_block = match.group(2).strip()
+                text = text[:match.start()].strip()
+
         return text, ioc_block
 
     # ── 4. OpSec et Confidentialité ───────────────────────────────────────────
@@ -113,7 +131,6 @@ class CTITextCleaner:
         anonymized_prose = self.anonymize_data(cleaned_prose)
         final_prose = self.sanitize_iocs(anonymized_prose)
 
-        # Nettoyage final des sauts de ligne multiples
         final_prose = re.sub(r'\n{3,}', '\n\n', final_prose).strip()
 
         return final_prose, ioc_block

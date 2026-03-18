@@ -19,8 +19,8 @@ print("[SemanticChunk] Chargement des modèles NLP et Embedding...")
 # 1. Modèle d'embedding
 # ASTUCE VITESSE : Si "BAAI/bge-m3" reste trop lent sur ta machine (car très lourd), 
 # commente la ligne ci-dessous et décommente la suivante pour utiliser un modèle ultra-léger et rapide.
-model = SentenceTransformer("BAAI/bge-m3")
-# model = SentenceTransformer("all-MiniLM-L6-v2")
+#model = SentenceTransformer("BAAI/bge-m3")
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # 2. Modèle spaCy allégé (Désactivation de la grammaire pour exploser la vitesse)
 nlp = spacy.load("en_core_web_sm", disable=["tok2vec", "tagger", "parser", "attribute_ruler", "lemmatizer"])
@@ -110,31 +110,29 @@ def semantic_chunking_improved(
         paragraphs: list[str],
         theta_s: float = 0.5,
         theta_e: float = 0.15,
-        l_max: int = 400,
+        l_max: int = 1500, # Limite augmentée par défaut pour Gemini
 ) -> list[str]:
     """
-    Chunking sémantique en deux dimensions (SC-LKM, Wang et al., 2025).
+    Chunking sémantique optimisé pour les grands LLMs (Gemini).
+    Accumule les entités et utilise une logique de coupure tolérante.
     """
     if not paragraphs:
         return []
 
     chunks = []
     current_chunk: list[str] = []
-    current_entities: list[str] = [] 
+    current_entities: set = set() # MODIFICATION : On utilise un set pour la mémoire globale du chunk
     current_length: int = 0
     current_centroid = None
     last_emb = None
     n_in_chunk: int = 0
 
-    # OPTIMISATION 1 : Vectorisation par lots (batching) au lieu d'un par un
     embeddings = model.encode(paragraphs, batch_size=32, show_progress_bar=False, convert_to_tensor=True)
-
-    # OPTIMISATION 2 : Traitement NLP spaCy par lots via nlp.pipe() (Gain de temps massif)
     docs = list(nlp.pipe(paragraphs, batch_size=32))
 
     for i, (p_i, doc) in enumerate(zip(paragraphs, docs)):
         l_i = len(p_i.split())
-        entities_i = get_entities(doc)
+        entities_i = set(get_entities(doc)) # Extraction en set
         emb_i = embeddings[i]
 
         if current_centroid is None:
@@ -143,23 +141,43 @@ def semantic_chunking_improved(
             s_centroid = util.cos_sim(emb_i, current_centroid).item()
             s_last = util.cos_sim(emb_i, last_emb).item()
             s_i = 0.6 * s_centroid + 0.4 * s_last
-            e_i = jaccard_weighted(entities_i, current_entities)
 
-        if current_chunk and (
-                s_i < theta_s
-                or e_i < theta_e
-                or current_length + l_i > l_max
-        ):
+            # MODIFICATION : Calcul du Jaccard par rapport à TOUTE l'histoire du chunk
+            if not entities_i and not current_entities:
+                e_i = 1.0
+            else:
+                inter = entities_i & current_entities
+                union = entities_i | current_entities
+                e_i = len(inter) / len(union) if union else 0.0
+
+        # MODIFICATION : Nouvelle logique de coupure
+        should_cut = False
+
+        if current_length + l_i > l_max:
+            should_cut = True # On coupe si on dépasse la limite physique
+
+        elif current_centroid is not None:
+            if not entities_i:
+                # Cas 1 : Paragraphe narratif pur (aucune entité détectée).
+                # On se fie uniquement à la similarité sémantique pour ne pas le pénaliser.
+                should_cut = (s_i < theta_s)
+            else:
+                # Cas 2 : Paragraphe technique (contient des entités).
+                # On coupe SI le sens change (s_i < theta_s) ET qu'il n'y a plus aucun lien technique (e_i < theta_e).
+                # Autrement dit, les entités en commun "sauvent" le chunk d'une coupure hâtive.
+                should_cut = (s_i < theta_s and e_i < theta_e)
+
+        if current_chunk and should_cut:
             chunks.append("\n\n".join(current_chunk))
             current_chunk = []
-            current_entities = []
+            current_entities = set() # Réinitialisation de la mémoire des entités
             current_length = 0
             current_centroid = None
             last_emb = None
             n_in_chunk = 0
 
         current_chunk.append(p_i)
-        current_entities = entities_i
+        current_entities.update(entities_i) # On enrichit la mémoire du chunk avec les nouvelles entités
         current_length += l_i
         last_emb = emb_i
         n_in_chunk += 1

@@ -232,7 +232,7 @@ def process_directory(input_dir, cleaner, chunking_cfg, output_dir, llm_engine):
 
     log.info(f"{len(files)} fichier(s) détecté(s). Lancement du pipeline...")
 
-    with ThreadPoolExecutor(max_workers=1) as executor:
+    with ThreadPoolExecutor(max_workers=5) as executor:
         for fp in sorted(files):
             doc = process_single_file(fp, cleaner, chunking_cfg, output_dir)
 

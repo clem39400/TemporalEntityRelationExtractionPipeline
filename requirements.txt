@@ -4,3 +4,9 @@ presidio-anonymizer
 spacy
 sentence-transformers
 requests
+pymupdf
+presidio-analyzer[transformers]
+presidio-anonymizer
+spacy
+sentence-transformers
+google-generativeai
