@@ -10,8 +10,8 @@ __pycache__/
 *.pyd
 
 # ── Données d'entrée/sortie (ne pas versionner les rapports) ─────────────────
-InputData/
-OutputChunks/
+Main/InputData/
+Main/OLD/OutputChunks/
 
 # ── IDE ───────────────────────────────────────────────────────────────────────
 .idea/
