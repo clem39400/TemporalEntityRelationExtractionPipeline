@@ -1,15 +1,9 @@
-import os
 import fitz  # PyMuPDF
 import re
-import numpy as np
-import nltk
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import paired_cosine_distances
-from typing import List, Dict
+from unidecode import unidecode
 
 class CTIDocumentExtractor:
     def __init__(self, remove_non_ascii: bool = True, hide_sensitive: bool = False, margin_tolerance: float = 0.08):
-        """Extracteur hybride capable de lire des dossiers entiers de PDF et de TXT."""
         self.remove_non_ascii = remove_non_ascii
         self.hide_sensitive = hide_sensitive
         self.margin_tolerance = margin_tolerance
@@ -48,6 +42,7 @@ class CTIDocumentExtractor:
                 footer_limit = page_height * (1 - self.margin_tolerance)
 
                 blocks = page.get_text("blocks")
+                # Tri des blocs de haut en bas, puis de gauche à droite
                 blocks.sort(key=lambda b: (b[1], b[0]))
 
                 for b in blocks:
@@ -62,15 +57,24 @@ class CTIDocumentExtractor:
         return " ".join(valid_text_blocks)
 
     def _sanitize_text(self, text: str) -> str:
-        """Applique les règles de nettoyage de la Phase 1."""
+        """Applique les règles de nettoyage de la Phase 1 avec filtres anti-bruit avancés."""
         if not text:
             return ""
 
+        # 1. Suppression des lignes de sommaire (ex: "Hardware-Enabled Defense..........................8")
+        text = re.sub(r'\.{4,}\s*\d+', ' ', text)
+
+        # 2. Réduction des mots répétés en boucle à une seule occurrence (ex: "FOUNDER FOUNDER FOUNDER" -> "FOUNDER")
+        text = re.sub(r'\b([A-Za-z]+)(?:\s+\1\b)+', r'\1', text, flags=re.IGNORECASE)
+
+        # 3. Masquage des données sensibles
         if self.hide_sensitive:
             text = re.sub(r'\b(?:\d{1,3}\.){3}\d{1,3}\b', '[REDACTED_IP]', text)
             text = re.sub(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,7}\b', '[REDACTED_EMAIL]', text)
 
+        # 4. Suppression des caractères non-ASCII
         if self.remove_non_ascii:
-            text = re.sub(r'[^\x00-\x7F]+', ' ', text)
+            text = unidecode(text)
 
+        # 5. Lissage des espaces et sauts de ligne
         return re.sub(r'\s+', ' ', text).strip()
