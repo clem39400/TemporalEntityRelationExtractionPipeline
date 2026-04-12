@@ -1,0 +1,1242 @@
+[
+    {
+        "chunk_metadata": {
+            "source": "m-trends-2025-en.pdf",
+            "chunk_id": 331
+        },
+        "extraction": {
+            "entities": [
+                {
+                    "id": "C331_E1",
+                    "type": "Threat_Actor",
+                    "mention": "suspected APT"
+                },
+                {
+                    "id": "C331_E2",
+                    "type": "Threat_Actor",
+                    "mention": "UNC3944"
+                },
+                {
+                    "id": "C331_E3",
+                    "type": "Threat_Actor",
+                    "mention": "cybercriminals"
+                },
+                {
+                    "id": "C331_E4",
+                    "type": "Vulnerability",
+                    "mention": "CVE-2023-46805"
+                },
+                {
+                    "id": "C331_E5",
+                    "type": "Vulnerability",
+                    "mention": "Zero-day"
+                },
+                {
+                    "id": "C331_E6",
+                    "type": "Malware",
+                    "mention": "Dark Crystal RAT backdoor"
+                },
+                {
+                    "id": "C331_E7",
+                    "type": "Malware",
+                    "mention": "Web Shell"
+                },
+                {
+                    "id": "C331_E8",
+                    "type": "Malware",
+                    "mention": "Malicious File"
+                },
+                {
+                    "id": "C331_E9",
+                    "type": "Malware",
+                    "mention": "Rootkit"
+                },
+                {
+                    "id": "C331_E10",
+                    "type": "Tool",
+                    "mention": "Cobalt Strike"
+                },
+                {
+                    "id": "C331_E11",
+                    "type": "Tool",
+                    "mention": "PowerShell"
+                },
+                {
+                    "id": "C331_E12",
+                    "type": "Tool",
+                    "mention": "Python"
+                },
+                {
+                    "id": "C331_E13",
+                    "type": "Tool",
+                    "mention": "Software Deployment Tools"
+                },
+                {
+                    "id": "C331_E14",
+                    "type": "Tool",
+                    "mention": "Utility"
+                },
+                {
+                    "id": "C331_E15",
+                    "type": "Attacker_Infrastructure",
+                    "mention": "Virtual Private Server"
+                },
+                {
+                    "id": "C331_E16",
+                    "type": "Attacker_Infrastructure",
+                    "mention": "C2 Channel"
+                },
+                {
+                    "id": "C331_E17",
+                    "type": "Attacker_Infrastructure",
+                    "mention": "Cloud Storage"
+                },
+                {
+                    "id": "C331_E18",
+                    "type": "Attacker_Infrastructure",
+                    "mention": "Rogue Domain Controller"
+                },
+                {
+                    "id": "C331_E19",
+                    "type": "Victim_Asset",
+                    "mention": "Public-Facing Application"
+                },
+                {
+                    "id": "C331_E20",
+                    "type": "Victim_Asset",
+                    "mention": "Cloud Accounts"
+                },
+                {
+                    "id": "C331_E21",
+                    "type": "Victim_Asset",
+                    "mention": "Windows Service"
+                },
+                {
+                    "id": "C331_E22",
+                    "type": "Victim_Asset",
+                    "mention": "User Account Control"
+                },
+                {
+                    "id": "C331_E23",
+                    "type": "Victim_Asset",
+                    "mention": "File and Directory"
+                },
+                {
+                    "id": "C331_E24",
+                    "type": "Victim_Asset",
+                    "mention": "SMB/Windows Admin Shares"
+                },
+                {
+                    "id": "C331_E25",
+                    "type": "Victim_Asset",
+                    "mention": "NTDS"
+                },
+                {
+                    "id": "C331_E26",
+                    "type": "Victim_Asset",
+                    "mention": "LSASS Memory"
+                },
+                {
+                    "id": "C331_E27",
+                    "type": "Victim_Asset",
+                    "mention": "Kerberos Tickets"
+                },
+                {
+                    "id": "C331_E28",
+                    "type": "Victim_Asset",
+                    "mention": "Registry"
+                },
+                {
+                    "id": "C331_E29",
+                    "type": "Victim_Asset",
+                    "mention": "System Firewall"
+                },
+                {
+                    "id": "C331_E30",
+                    "type": "Attack_Pattern",
+                    "mention": "Initial Reconnaissance"
+                },
+                {
+                    "id": "C331_E31",
+                    "type": "Attack_Pattern",
+                    "mention": "Phishing for Information"
+                },
+                {
+                    "id": "C331_E32",
+                    "type": "Attack_Pattern",
+                    "mention": "Vulnerability Scanning"
+                },
+                {
+                    "id": "C331_E33",
+                    "type": "Attack_Pattern",
+                    "mention": "Resource Development"
+                },
+                {
+                    "id": "C331_E34",
+                    "type": "Attack_Pattern",
+                    "mention": "Obtain Capabilities"
+                },
+                {
+                    "id": "C331_E35",
+                    "type": "Attack_Pattern",
+                    "mention": "T1608.001: Upload Malware"
+                },
+                {
+                    "id": "C331_E36",
+                    "type": "Attack_Pattern",
+                    "mention": "T1583: Acquire Infrastructure"
+                },
+                {
+                    "id": "C331_E37",
+                    "type": "Attack_Pattern",
+                    "mention": "Initial Access"
+                },
+                {
+                    "id": "C331_E38",
+                    "type": "Attack_Pattern",
+                    "mention": "T1190: Exploit Public-Facing Application"
+                },
+                {
+                    "id": "C331_E39",
+                    "type": "Attack_Pattern",
+                    "mention": "T1078: Valid Accounts"
+                },
+                {
+                    "id": "C331_E40",
+                    "type": "Attack_Pattern",
+                    "mention": "T1566.002: Spearphishing Link"
+                },
+                {
+                    "id": "C331_E41",
+                    "type": "Attack_Pattern",
+                    "mention": "Persistence"
+                },
+                {
+                    "id": "C331_E42",
+                    "type": "Attack_Pattern",
+                    "mention": "T1543: Create or Modify System Process"
+                },
+                {
+                    "id": "C331_E43",
+                    "type": "Attack_Pattern",
+                    "mention": "T1505: Server Software Component"
+                },
+                {
+                    "id": "C331_E44",
+                    "type": "Attack_Pattern",
+                    "mention": "Privilege Escalation"
+                },
+                {
+                    "id": "C331_E45",
+                    "type": "Attack_Pattern",
+                    "mention": "T1055: Process Injection"
+                },
+                {
+                    "id": "C331_E46",
+                    "type": "Attack_Pattern",
+                    "mention": "T1548.002: Bypass User Account Control"
+                },
+                {
+                    "id": "C331_E47",
+                    "type": "Attack_Pattern",
+                    "mention": "Discovery"
+                },
+                {
+                    "id": "C331_E48",
+                    "type": "Attack_Pattern",
+                    "mention": "T1083: File and Directory Discovery"
+                },
+                {
+                    "id": "C331_E49",
+                    "type": "Attack_Pattern",
+                    "mention": "T1012: Query Registry"
+                },
+                {
+                    "id": "C331_E50",
+                    "type": "Attack_Pattern",
+                    "mention": "Lateral Movement"
+                },
+                {
+                    "id": "C331_E51",
+                    "type": "Attack_Pattern",
+                    "mention": "T1021: Remote Services"
+                },
+                {
+                    "id": "C331_E52",
+                    "type": "Attack_Pattern",
+                    "mention": "T1550.002: Pass the Hash"
+                },
+                {
+                    "id": "C331_E53",
+                    "type": "Attack_Pattern",
+                    "mention": "T1570: Lateral Tool Transfer"
+                },
+                {
+                    "id": "C331_E54",
+                    "type": "Attack_Pattern",
+                    "mention": "Collection"
+                },
+                {
+                    "id": "C331_E55",
+                    "type": "Attack_Pattern",
+                    "mention": "T1560.001: Archive via Utility"
+                },
+                {
+                    "id": "C331_E56",
+                    "type": "Attack_Pattern",
+                    "mention": "T1056.001: Keylogging"
+                },
+                {
+                    "id": "C331_E57",
+                    "type": "Attack_Pattern",
+                    "mention": "Exfiltration"
+                },
+                {
+                    "id": "C331_E58",
+                    "type": "Attack_Pattern",
+                    "mention": "T1041: Exfiltration Over C2 Channel"
+                },
+                {
+                    "id": "C331_E59",
+                    "type": "Attack_Pattern",
+                    "mention": "Impact"
+                },
+                {
+                    "id": "C331_E60",
+                    "type": "Attack_Pattern",
+                    "mention": "T1486: Data Encrypted for Impact"
+                },
+                {
+                    "id": "C331_E61",
+                    "type": "Attack_Pattern",
+                    "mention": "Command and Control"
+                },
+                {
+                    "id": "C331_E62",
+                    "type": "Attack_Pattern",
+                    "mention": "Execution"
+                },
+                {
+                    "id": "C331_E63",
+                    "type": "Attack_Pattern",
+                    "mention": "T1059: Command and Scripting Interpreter"
+                },
+                {
+                    "id": "C331_E64",
+                    "type": "Attack_Pattern",
+                    "mention": "T1204.002: Malicious File"
+                },
+                {
+                    "id": "C331_E65",
+                    "type": "Attack_Pattern",
+                    "mention": "Defense Evasion"
+                },
+                {
+                    "id": "C331_E66",
+                    "type": "Attack_Pattern",
+                    "mention": "T1027: Obfuscated Files or Information"
+                },
+                {
+                    "id": "C331_E67",
+                    "type": "Attack_Pattern",
+                    "mention": "T1562.004: Disable or Modify System Firewall"
+                },
+                {
+                    "id": "C331_E68",
+                    "type": "Attack_Pattern",
+                    "mention": "Credential Access"
+                },
+                {
+                    "id": "C331_E69",
+                    "type": "Attack_Pattern",
+                    "mention": "T1003: OS Credential Dumping"
+                }
+            ],
+            "relations": [
+                {
+                    "source": "C331_E30",
+                    "target": "C331_E33",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C331_E33",
+                    "target": "C331_E37",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C331_E37",
+                    "target": "C331_E41",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C331_E41",
+                    "target": "C331_E44",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C331_E44",
+                    "target": "C331_E47",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C331_E47",
+                    "target": "C331_E50",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C331_E50",
+                    "target": "C331_E54",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C331_E54",
+                    "target": "C331_E57",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C331_E57",
+                    "target": "C331_E59",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C331_E1",
+                    "target": "C331_E38",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C331_E3",
+                    "target": "C331_E10",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C331_E35",
+                    "target": "C331_E6",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C331_E35",
+                    "target": "C331_E8",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C331_E43",
+                    "target": "C331_E7",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C331_E63",
+                    "target": "C331_E11",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C331_E63",
+                    "target": "C331_E12",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C331_E53",
+                    "target": "C331_E13",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C331_E55",
+                    "target": "C331_E14",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C331_E64",
+                    "target": "C331_E8",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C331_E39",
+                    "target": "C331_E20",
+                    "relation_type": "TARGETS"
+                },
+                {
+                    "source": "C331_E42",
+                    "target": "C331_E21",
+                    "relation_type": "TARGETS"
+                },
+                {
+                    "source": "C331_E46",
+                    "target": "C331_E22",
+                    "relation_type": "TARGETS"
+                },
+                {
+                    "source": "C331_E48",
+                    "target": "C331_E23",
+                    "relation_type": "TARGETS"
+                },
+                {
+                    "source": "C331_E49",
+                    "target": "C331_E28",
+                    "relation_type": "TARGETS"
+                },
+                {
+                    "source": "C331_E51",
+                    "target": "C331_E24",
+                    "relation_type": "TARGETS"
+                },
+                {
+                    "source": "C331_E69",
+                    "target": "C331_E25",
+                    "relation_type": "TARGETS"
+                },
+                {
+                    "source": "C331_E69",
+                    "target": "C331_E26",
+                    "relation_type": "TARGETS"
+                },
+                {
+                    "source": "C331_E58",
+                    "target": "C331_E16",
+                    "relation_type": "TARGETS"
+                },
+                {
+                    "source": "C331_E36",
+                    "target": "C331_E15",
+                    "relation_type": "TARGETS"
+                },
+                {
+                    "source": "C331_E67",
+                    "target": "C331_E29",
+                    "relation_type": "TARGETS"
+                },
+                {
+                    "source": "C331_E38",
+                    "target": "C331_E5",
+                    "relation_type": "EXPLOITS"
+                },
+                {
+                    "source": "C331_E38",
+                    "target": "C331_E19",
+                    "relation_type": "TARGETS"
+                },
+                {
+                    "source": "C331_E11",
+                    "target": "C331_E63",
+                    "relation_type": "BEFORE"
+                }
+            ]
+        },
+        "test_mode": "FEW_SHOT"
+    },
+    {
+        "chunk_metadata": {
+            "source": "m-trends-2025-en.pdf",
+            "chunk_id": 75
+        },
+        "extraction": {
+            "entities": [
+                {
+                    "id": "C75_E1",
+                    "type": "Threat_Actor",
+                    "mention": "attackers"
+                },
+                {
+                    "id": "C75_E2",
+                    "type": "Victim_Asset",
+                    "mention": "target organizations"
+                },
+                {
+                    "id": "C75_E3",
+                    "type": "Malware",
+                    "mention": "ransomware"
+                },
+                {
+                    "id": "C75_E4",
+                    "type": "Malware",
+                    "mention": "Credential stealers"
+                },
+                {
+                    "id": "C75_E5",
+                    "type": "Malware",
+                    "mention": "backdoors"
+                },
+                {
+                    "id": "C75_E6",
+                    "type": "Tool",
+                    "mention": "utilities"
+                },
+                {
+                    "id": "C75_E7",
+                    "type": "Malware",
+                    "mention": "tunnelers"
+                },
+                {
+                    "id": "C75_E8",
+                    "type": "Malware",
+                    "mention": "downloaders"
+                },
+                {
+                    "id": "C75_E9",
+                    "type": "Malware",
+                    "mention": "droppers"
+                },
+                {
+                    "id": "C75_E10",
+                    "type": "Malware",
+                    "mention": "keyloggers"
+                },
+                {
+                    "id": "C75_E11",
+                    "type": "Malware",
+                    "mention": "launchers"
+                },
+                {
+                    "id": "C75_E12",
+                    "type": "Malware",
+                    "mention": "installers"
+                },
+                {
+                    "id": "C75_E13",
+                    "type": "Malware",
+                    "mention": "uploaders"
+                },
+                {
+                    "id": "C75_E14",
+                    "type": "Malware",
+                    "mention": "BEACON"
+                },
+                {
+                    "id": "C75_E15",
+                    "type": "Malware",
+                    "mention": "RANSOMHUB"
+                },
+                {
+                    "id": "C75_E16",
+                    "type": "Malware",
+                    "mention": "REDBIKE (aka Akira)"
+                },
+                {
+                    "id": "C75_E17",
+                    "type": "Malware",
+                    "mention": "Akira"
+                },
+                {
+                    "id": "C75_E18",
+                    "type": "Malware",
+                    "mention": "BASTA"
+                },
+                {
+                    "id": "C75_E19",
+                    "type": "Malware",
+                    "mention": "LOCKBIT"
+                },
+                {
+                    "id": "C75_E20",
+                    "type": "Malware",
+                    "mention": "SYSTEMBC"
+                },
+                {
+                    "id": "C75_E21",
+                    "type": "Attack_Pattern",
+                    "mention": "ransomware-related intrusions"
+                },
+                {
+                    "id": "C75_E22",
+                    "type": "Threat_Actor",
+                    "mention": "threat actors"
+                },
+                {
+                    "id": "C75_E23",
+                    "type": "Tool",
+                    "mention": "remote control and administration tools"
+                },
+                {
+                    "id": "C75_E24",
+                    "type": "Threat_Actor",
+                    "mention": "Threat actors"
+                },
+                {
+                    "id": "C75_E25",
+                    "type": "Tool",
+                    "mention": "publicly available and legitimate tools"
+                },
+                {
+                    "id": "C75_E26",
+                    "type": "Tool",
+                    "mention": "credential extraction tools"
+                },
+                {
+                    "id": "C75_E27",
+                    "type": "Tool",
+                    "mention": "remote administration tools"
+                },
+                {
+                    "id": "C75_E28",
+                    "type": "Threat_Actor",
+                    "mention": "Threat actors"
+                },
+                {
+                    "id": "C75_E29",
+                    "type": "Tool",
+                    "mention": "commercially avail- able or legitimate tools"
+                },
+                {
+                    "id": "C75_E30",
+                    "type": "Threat_Actor",
+                    "mention": "threat actors"
+                },
+                {
+                    "id": "C75_E31",
+                    "type": "Attack_Pattern",
+                    "mention": "ransomware deployments"
+                },
+                {
+                    "id": "C75_E32",
+                    "type": "Victim_Asset",
+                    "mention": "targets"
+                }
+            ],
+            "relations": [
+                {
+                    "source": "C75_E1",
+                    "target": "C75_E2",
+                    "relation_type": "TARGETS"
+                },
+                {
+                    "source": "C75_E21",
+                    "target": "C75_E3",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E21",
+                    "target": "C75_E4",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E21",
+                    "target": "C75_E5",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E21",
+                    "target": "C75_E6",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E21",
+                    "target": "C75_E7",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E21",
+                    "target": "C75_E8",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E21",
+                    "target": "C75_E9",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E21",
+                    "target": "C75_E10",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E21",
+                    "target": "C75_E11",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E21",
+                    "target": "C75_E12",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E21",
+                    "target": "C75_E13",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E21",
+                    "target": "C75_E14",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E21",
+                    "target": "C75_E15",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E21",
+                    "target": "C75_E16",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E16",
+                    "target": "C75_E17",
+                    "relation_type": "SIMULTANEOUS"
+                },
+                {
+                    "source": "C75_E21",
+                    "target": "C75_E18",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E21",
+                    "target": "C75_E19",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E21",
+                    "target": "C75_E20",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E22",
+                    "target": "C75_E23",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E24",
+                    "target": "C75_E3",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E24",
+                    "target": "C75_E25",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E24",
+                    "target": "C75_E26",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E24",
+                    "target": "C75_E4",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E24",
+                    "target": "C75_E27",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E28",
+                    "target": "C75_E29",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E28",
+                    "target": "C75_E21",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E21",
+                    "target": "C75_E29",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C75_E30",
+                    "target": "C75_E32",
+                    "relation_type": "TARGETS"
+                },
+                {
+                    "source": "C75_E31",
+                    "target": "C75_E32",
+                    "relation_type": "TARGETS"
+                }
+            ]
+        },
+        "test_mode": "FEW_SHOT"
+    },
+    {
+        "chunk_metadata": {
+            "source": "m-trends-2025-en.pdf",
+            "chunk_id": 9
+        },
+        "extraction": {
+            "entities": [
+                {
+                    "id": "C9_E1",
+                    "type": "Malware",
+                    "mention": "SNOWLIGHT downloader"
+                },
+                {
+                    "id": "C9_E2",
+                    "type": "Attack_Pattern",
+                    "mention": "reconnaissance"
+                },
+                {
+                    "id": "C9_E3",
+                    "type": "Victim_Asset",
+                    "mention": "configuration files"
+                },
+                {
+                    "id": "C9_E4",
+                    "type": "Malware",
+                    "mention": "BEACON backdoor"
+                },
+                {
+                    "id": "C9_E5",
+                    "type": "Attack_Pattern",
+                    "mention": "zero-day exploitation"
+                },
+                {
+                    "id": "C9_E6",
+                    "type": "Vulnerability",
+                    "mention": "CVE-2023-46805"
+                },
+                {
+                    "id": "C9_E7",
+                    "type": "Vulnerability",
+                    "mention": "CVE-2024- 21887"
+                },
+                {
+                    "id": "C9_E8",
+                    "type": "Threat_Actor",
+                    "mention": "UNC5221"
+                },
+                {
+                    "id": "C9_E9",
+                    "type": "Malware",
+                    "mention": "custom malware"
+                },
+                {
+                    "id": "C9_E10",
+                    "type": "Malware",
+                    "mention": "web shells"
+                },
+                {
+                    "id": "C9_E11",
+                    "type": "Threat_Actor",
+                    "mention": "another actor"
+                },
+                {
+                    "id": "C9_E12",
+                    "type": "Malware",
+                    "mention": "SLIVER"
+                },
+                {
+                    "id": "C9_E13",
+                    "type": "Malware",
+                    "mention": "TERRIBLETEA backdoors"
+                },
+                {
+                    "id": "C9_E14",
+                    "type": "Malware",
+                    "mention": "XMRIG"
+                },
+                {
+                    "id": "C9_E15",
+                    "type": "Threat_Actor",
+                    "mention": "APT41"
+                },
+                {
+                    "id": "C9_E16",
+                    "type": "Malware",
+                    "mention": "ANTSWORD"
+                },
+                {
+                    "id": "C9_E17",
+                    "type": "Threat_Actor",
+                    "mention": "UNC3886"
+                },
+                {
+                    "id": "C9_E18",
+                    "type": "Malware",
+                    "mention": "GHOSTTOWN"
+                },
+                {
+                    "id": "C9_E19",
+                    "type": "Threat_Actor",
+                    "mention": "UNC4536"
+                },
+                {
+                    "id": "C9_E20",
+                    "type": "Malware",
+                    "mention": "NUMOZYLOD"
+                },
+                {
+                    "id": "C9_E21",
+                    "type": "Threat_Actor",
+                    "mention": "UNC3944"
+                },
+                {
+                    "id": "C9_E22",
+                    "type": "Threat_Actor",
+                    "mention": "ALPHV"
+                },
+                {
+                    "id": "C9_E23",
+                    "type": "Threat_Actor",
+                    "mention": "UNC5155"
+                },
+                {
+                    "id": "C9_E24",
+                    "type": "Malware",
+                    "mention": "SILENTNIGHT"
+                },
+                {
+                    "id": "C9_E25",
+                    "type": "Threat_Actor",
+                    "mention": "APT44"
+                },
+                {
+                    "id": "C9_E26",
+                    "type": "Malware",
+                    "mention": "DARKCRYSTALRAT"
+                },
+                {
+                    "id": "C9_E27",
+                    "type": "Threat_Actor",
+                    "mention": "APT28"
+                },
+                {
+                    "id": "C9_E28",
+                    "type": "Threat_Actor",
+                    "mention": "RHYSIDA"
+                },
+                {
+                    "id": "C9_E29",
+                    "type": "Threat_Actor",
+                    "mention": "REDBIKE (AKIRA)"
+                },
+                {
+                    "id": "C9_E30",
+                    "type": "Vulnerability",
+                    "mention": "CVE-2020-3529"
+                },
+                {
+                    "id": "C9_E31",
+                    "type": "Vulnerability",
+                    "mention": "CVE-2024-3400"
+                },
+                {
+                    "id": "C9_E32",
+                    "type": "Malware",
+                    "mention": "WHOAMI"
+                },
+                {
+                    "id": "C9_E33",
+                    "type": "Threat_Actor",
+                    "mention": "UNC1543"
+                },
+                {
+                    "id": "C9_E34",
+                    "type": "Threat_Actor",
+                    "mention": "UNC2165"
+                },
+                {
+                    "id": "C9_E35",
+                    "type": "Malware",
+                    "mention": "FAKEUPDATES"
+                },
+                {
+                    "id": "C9_E36",
+                    "type": "Malware",
+                    "mention": "EXMATTER"
+                },
+                {
+                    "id": "C9_E37",
+                    "type": "Malware",
+                    "mention": "CLICKSINK"
+                },
+                {
+                    "id": "C9_E38",
+                    "type": "Threat_Actor",
+                    "mention": "UNC4393"
+                },
+                {
+                    "id": "C9_E39",
+                    "type": "Malware",
+                    "mention": "BASTA"
+                },
+                {
+                    "id": "C9_E40",
+                    "type": "Threat_Actor",
+                    "mention": "UNC4696"
+                },
+                {
+                    "id": "C9_E41",
+                    "type": "Tool",
+                    "mention": "ANYDESK"
+                },
+                {
+                    "id": "C9_E42",
+                    "type": "Threat_Actor",
+                    "mention": "UNC5537"
+                },
+                {
+                    "id": "C9_E43",
+                    "type": "Vulnerability",
+                    "mention": "CVE-2023-48788"
+                },
+                {
+                    "id": "C9_E44",
+                    "type": "Tool",
+                    "mention": "SIMPLEHELP"
+                },
+                {
+                    "id": "C9_E45",
+                    "type": "Threat_Actor",
+                    "mention": "UNC2565"
+                },
+                {
+                    "id": "C9_E46",
+                    "type": "Malware",
+                    "mention": "GOOTLOADER"
+                },
+                {
+                    "id": "C9_E47",
+                    "type": "Threat_Actor",
+                    "mention": "UNC5820"
+                },
+                {
+                    "id": "C9_E48",
+                    "type": "Vulnerability",
+                    "mention": "CVE-2024-47575"
+                },
+                {
+                    "id": "C9_E49",
+                    "type": "Threat_Actor",
+                    "mention": "UNC3319"
+                },
+                {
+                    "id": "C9_E50",
+                    "type": "Threat_Actor",
+                    "mention": "UNC5606"
+                },
+                {
+                    "id": "C9_E51",
+                    "type": "Malware",
+                    "mention": "LUMMAC.V2"
+                },
+                {
+                    "id": "C9_E52",
+                    "type": "Attack_Pattern",
+                    "mention": "Espionage"
+                },
+                {
+                    "id": "C9_E53",
+                    "type": "Threat_Actor",
+                    "mention": "UNC5791"
+                },
+                {
+                    "id": "C9_E54",
+                    "type": "Malware",
+                    "mention": "SIGSEGA"
+                },
+                {
+                    "id": "C9_E55",
+                    "type": "Attack_Pattern",
+                    "mention": "SNOWLIGHT downloader deployment"
+                },
+                {
+                    "id": "C9_E56",
+                    "type": "Attack_Pattern",
+                    "mention": "BEACON backdoor usage"
+                }
+            ],
+            "relations": [
+                {
+                    "source": "C9_E55",
+                    "target": "C9_E1",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C9_E2",
+                    "target": "C9_E3",
+                    "relation_type": "TARGETS"
+                },
+                {
+                    "source": "C9_E56",
+                    "target": "C9_E4",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C9_E5",
+                    "target": "C9_E6",
+                    "relation_type": "EXPLOITS"
+                },
+                {
+                    "source": "C9_E5",
+                    "target": "C9_E7",
+                    "relation_type": "EXPLOITS"
+                },
+                {
+                    "source": "C9_E8",
+                    "target": "C9_E9",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C9_E8",
+                    "target": "C9_E10",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C9_E11",
+                    "target": "C9_E12",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C9_E11",
+                    "target": "C9_E13",
+                    "relation_type": "USES"
+                }
+            ]
+        },
+        "test_mode": "FEW_SHOT"
+    },
+    {
+        "chunk_metadata": {
+            "source": "m-trends-2025-en.pdf",
+            "chunk_id": 10
+        },
+        "extraction": null,
+        "test_mode": "FEW_SHOT"
+    },
+    {
+        "chunk_metadata": {
+            "source": "m-trends-2025-en.pdf",
+            "chunk_id": 332
+        },
+        "extraction": null,
+        "test_mode": "FEW_SHOT"
+    },
+    {
+        "chunk_metadata": {
+            "source": "CERTFR-2025-CTI-003.pdf",
+            "chunk_id": 17
+        },
+        "extraction": null,
+        "test_mode": "FEW_SHOT"
+    },
+    {
+        "chunk_metadata": {
+            "source": "m-trends-2025-en.pdf",
+            "chunk_id": 36
+        },
+        "extraction": null,
+        "test_mode": "FEW_SHOT"
+    },
+    {
+        "chunk_metadata": {
+            "source": "CERTFR-2025-CTI-003.pdf",
+            "chunk_id": 15
+        },
+        "extraction": null,
+        "test_mode": "FEW_SHOT"
+    },
+    {
+        "chunk_metadata": {
+            "source": "m-trends-2025-en.pdf",
+            "chunk_id": 12
+        },
+        "extraction": null,
+        "test_mode": "FEW_SHOT"
+    },
+    {
+        "chunk_metadata": {
+            "source": "m-trends-2025-en.pdf",
+            "chunk_id": 73
+        },
+        "extraction": null,
+        "test_mode": "FEW_SHOT"
+    }
+]

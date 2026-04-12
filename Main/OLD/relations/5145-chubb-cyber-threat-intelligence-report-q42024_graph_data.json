@@ -1,0 +1,215 @@
+{
+  "source_file": "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\InputData\\5145-chubb-cyber-threat-intelligence-report-q42024.pdf",
+  "graph_data": [
+    {
+      "chunk_index": 1,
+      "chunk_preview": "## Cyber Threat Intelligence Report Q4 2024",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 2,
+      "chunk_preview": "As cyber threats evolve, Chubb is committed to keeping you w",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 3,
+      "chunk_preview": "## VULNERABILITY RADAR",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 4,
+      "chunk_preview": "## Improper Access Control: SonicWall SonicOS",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 5,
+      "chunk_preview": "SonicWall first notified clients of a critical severity vuln",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 6,
+      "chunk_preview": "According to cybersecurity firm Arctic Wolf, the vulnerabili",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 7,
+      "chunk_preview": "To mitigate this exposure, prioritize identifying and patchi",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 8,
+      "chunk_preview": "## VULNERABILITY ALERT  ## With Infostealers, Hacking Has Ne",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 9,
+      "chunk_preview": "Law enforcement targeted prominent infostealers, RedLine and",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 10,
+      "chunk_preview": "Sophos, Spycloud  ## A common entry point:  Compromised cred",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 11,
+      "chunk_preview": "## TMChecker Infostealer Dramatically Lowers Barriers To Ent",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 12,
+      "chunk_preview": "Corporate cybersecurity faces a significant new threat with ",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 13,
+      "chunk_preview": "TMChecker has transformed sophisticated attack methodologies",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 14,
+      "chunk_preview": "Chubb offers an array of User Security and Awareness Solutio",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 15,
+      "chunk_preview": "Mobile device policies should be strictly enforced to preven",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 16,
+      "chunk_preview": "## Phishing Remains Top Tactic in Q4",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 17,
+      "chunk_preview": "Continuing a trend seen over several quarters now, phishing ",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 18,
+      "chunk_preview": "A content filtering solution and an email security gateway w",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 19,
+      "chunk_preview": "## Email security gateways with sandboxing",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 20,
+      "chunk_preview": "Conducts virtual screening of suspicious email attachments a",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    },
+    {
+      "chunk_index": 21,
+      "chunk_preview": "Source: Chubb  of remote services attacked were VPNs  Source",
+      "llm_output": {
+        "entities": [],
+        "relations": [],
+        "temporal_dependencies": [],
+        "error": "\n  No API_KEY or ADC found. Please either:\n    - Set the `GOOGLE_API_KEY` environment variable.\n    - Manually pass the key with `genai.configure(api_key=my_api_key)`.\n    - Or set up Application Default Credentials, see https://ai.google.dev/gemini-api/docs/oauth for more information."
+      }
+    }
+  ]
+}

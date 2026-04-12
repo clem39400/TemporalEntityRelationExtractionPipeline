@@ -1,0 +1,250 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 750px;
+                 background-color: #222222;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+             #loadingBar {
+                 position:absolute;
+                 top:0px;
+                 left:0px;
+                 width: 100%;
+                 height: 750px;
+                 background-color:rgba(200,200,200,0.8);
+                 -webkit-transition: all 0.5s ease;
+                 -moz-transition: all 0.5s ease;
+                 -ms-transition: all 0.5s ease;
+                 -o-transition: all 0.5s ease;
+                 transition: all 0.5s ease;
+                 opacity:1;
+             }
+
+             #bar {
+                 position:absolute;
+                 top:0px;
+                 left:0px;
+                 width:20px;
+                 height:20px;
+                 margin:auto auto auto auto;
+                 border-radius:11px;
+                 border:2px solid rgba(30,30,30,0.05);
+                 background: rgb(0, 173, 246); /* Old browsers */
+                 box-shadow: 2px 0px 4px rgba(0,0,0,0.4);
+             }
+
+             #border {
+                 position:absolute;
+                 top:10px;
+                 left:10px;
+                 width:500px;
+                 height:23px;
+                 margin:auto auto auto auto;
+                 box-shadow: 0px 0px 4px rgba(0,0,0,0.2);
+                 border-radius:10px;
+             }
+
+             #text {
+                 position:absolute;
+                 top:8px;
+                 left:530px;
+                 width:30px;
+                 height:50px;
+                 margin:auto auto auto auto;
+                 font-size:22px;
+                 color: #000000;
+             }
+
+             div.outerBorder {
+                 position:relative;
+                 top:400px;
+                 width:600px;
+                 height:44px;
+                 margin:auto auto auto auto;
+                 border:8px solid rgba(0,0,0,0.1);
+                 background: rgb(252,252,252); /* Old browsers */
+                 background: -moz-linear-gradient(top,  rgba(252,252,252,1) 0%, rgba(237,237,237,1) 100%); /* FF3.6+ */
+                 background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(252,252,252,1)), color-stop(100%,rgba(237,237,237,1))); /* Chrome,Safari4+ */
+                 background: -webkit-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* Chrome10+,Safari5.1+ */
+                 background: -o-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* Opera 11.10+ */
+                 background: -ms-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* IE10+ */
+                 background: linear-gradient(to bottom,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* W3C */
+                 filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fcfcfc', endColorstr='#ededed',GradientType=0 ); /* IE6-9 */
+                 border-radius:72px;
+                 box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+             }
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+            <div id="loadingBar">
+              <div class="outerBorder">
+                <div id="text">0%</div>
+                <div id="border">
+                  <div id="bar"></div>
+                </div>
+              </div>
+            </div>
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E1", "label": "suspected APT", "shape": "dot", "title": "Type: Threat_Actor\nAliases: suspected APT"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E2", "label": "UNC3944", "shape": "dot", "title": "Type: Threat_Actor\nAliases: UNC3944"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E3", "label": "cybercriminals", "shape": "dot", "title": "Type: Threat_Actor\nAliases: cybercriminals"}, {"color": "#9B59B6", "font": {"color": "white"}, "id": "G_E4", "label": "CVE-2023-46805", "shape": "dot", "title": "Type: Vulnerability\nAliases: CVE-2023-46805, CVE-2024- 21887, CVE-2024-3400, CVE-2024-47575, CVE-2023-48788, CVE-2020-3529"}, {"color": "#9B59B6", "font": {"color": "white"}, "id": "G_E5", "label": "Zero-day", "shape": "dot", "title": "Type: Vulnerability\nAliases: Zero-day"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E6", "label": "Dark Crystal RAT backdoor", "shape": "dot", "title": "Type: Malware\nAliases: Dark Crystal RAT backdoor"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E7", "label": "Web Shell", "shape": "dot", "title": "Type: Malware\nAliases: Web Shell, web shells"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E8", "label": "Malicious File", "shape": "dot", "title": "Type: Malware\nAliases: Malicious File"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E9", "label": "Rootkit", "shape": "dot", "title": "Type: Malware\nAliases: Rootkit"}, {"color": "#4B9AFF", "font": {"color": "white"}, "id": "G_E10", "label": "Cobalt Strike", "shape": "dot", "title": "Type: Tool\nAliases: Cobalt Strike"}, {"color": "#4B9AFF", "font": {"color": "white"}, "id": "G_E11", "label": "PowerShell", "shape": "dot", "title": "Type: Tool\nAliases: PowerShell"}, {"color": "#4B9AFF", "font": {"color": "white"}, "id": "G_E12", "label": "Python", "shape": "dot", "title": "Type: Tool\nAliases: Python"}, {"color": "#4B9AFF", "font": {"color": "white"}, "id": "G_E13", "label": "Software Deployment Tools", "shape": "dot", "title": "Type: Tool\nAliases: Software Deployment Tools"}, {"color": "#4B9AFF", "font": {"color": "white"}, "id": "G_E14", "label": "Utility", "shape": "dot", "title": "Type: Tool\nAliases: Utility"}, {"color": "#E74C3C", "font": {"color": "white"}, "id": "G_E15", "label": "Virtual Private Server", "shape": "dot", "title": "Type: Attacker_Infrastructure\nAliases: Virtual Private Server"}, {"color": "#E74C3C", "font": {"color": "white"}, "id": "G_E16", "label": "C2 Channel", "shape": "dot", "title": "Type: Attacker_Infrastructure\nAliases: C2 Channel"}, {"color": "#E74C3C", "font": {"color": "white"}, "id": "G_E17", "label": "Cloud Storage", "shape": "dot", "title": "Type: Attacker_Infrastructure\nAliases: Cloud Storage"}, {"color": "#E74C3C", "font": {"color": "white"}, "id": "G_E18", "label": "Rogue Domain Controller", "shape": "dot", "title": "Type: Attacker_Infrastructure\nAliases: Rogue Domain Controller"}, {"color": "#2ECC71", "font": {"color": "white"}, "id": "G_E19", "label": "Public-Facing Application", "shape": "dot", "title": "Type: Victim_Asset\nAliases: Public-Facing Application"}, {"color": "#2ECC71", "font": {"color": "white"}, "id": "G_E20", "label": "Cloud Accounts", "shape": "dot", "title": "Type: Victim_Asset\nAliases: Cloud Accounts"}, {"color": "#2ECC71", "font": {"color": "white"}, "id": "G_E21", "label": "Windows Service", "shape": "dot", "title": "Type: Victim_Asset\nAliases: Windows Service"}, {"color": "#2ECC71", "font": {"color": "white"}, "id": "G_E22", "label": "User Account Control", "shape": "dot", "title": "Type: Victim_Asset\nAliases: User Account Control"}, {"color": "#2ECC71", "font": {"color": "white"}, "id": "G_E23", "label": "File and Directory", "shape": "dot", "title": "Type: Victim_Asset\nAliases: File and Directory"}, {"color": "#2ECC71", "font": {"color": "white"}, "id": "G_E24", "label": "SMB/Windows Admin Shares", "shape": "dot", "title": "Type: Victim_Asset\nAliases: SMB/Windows Admin Shares"}, {"color": "#2ECC71", "font": {"color": "white"}, "id": "G_E25", "label": "NTDS", "shape": "dot", "title": "Type: Victim_Asset\nAliases: NTDS"}, {"color": "#2ECC71", "font": {"color": "white"}, "id": "G_E26", "label": "LSASS Memory", "shape": "dot", "title": "Type: Victim_Asset\nAliases: LSASS Memory"}, {"color": "#2ECC71", "font": {"color": "white"}, "id": "G_E27", "label": "Kerberos Tickets", "shape": "dot", "title": "Type: Victim_Asset\nAliases: Kerberos Tickets"}, {"color": "#2ECC71", "font": {"color": "white"}, "id": "G_E28", "label": "Registry", "shape": "dot", "title": "Type: Victim_Asset\nAliases: Registry"}, {"color": "#2ECC71", "font": {"color": "white"}, "id": "G_E29", "label": "System Firewall", "shape": "dot", "title": "Type: Victim_Asset\nAliases: System Firewall"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E30", "label": "Initial Reconnaissance", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: Initial Reconnaissance, reconnaissance"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E31", "label": "Phishing for Information", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: Phishing for Information"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E32", "label": "Vulnerability Scanning", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: Vulnerability Scanning"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E33", "label": "Resource Development", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: Resource Development"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E34", "label": "Obtain Capabilities", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: Obtain Capabilities"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E35", "label": "T1608.001: Upload Malware", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1608.001: Upload Malware"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E36", "label": "T1583: Acquire Infrastructure", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1583: Acquire Infrastructure"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E37", "label": "Initial Access", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: Initial Access"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E38", "label": "T1190: Exploit Public-Facing Application", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1190: Exploit Public-Facing Application"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E39", "label": "T1078: Valid Accounts", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1078: Valid Accounts"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E40", "label": "T1566.002: Spearphishing Link", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1566.002: Spearphishing Link"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E41", "label": "Persistence", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: Persistence"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E42", "label": "T1543: Create or Modify System Process", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1543: Create or Modify System Process"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E43", "label": "T1505: Server Software Component", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1505: Server Software Component"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E44", "label": "Privilege Escalation", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: Privilege Escalation"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E45", "label": "T1055: Process Injection", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1055: Process Injection"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E46", "label": "T1548.002: Bypass User Account Control", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1548.002: Bypass User Account Control"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E47", "label": "Discovery", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: Discovery"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E48", "label": "T1083: File and Directory Discovery", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1083: File and Directory Discovery"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E49", "label": "T1012: Query Registry", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1012: Query Registry"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E50", "label": "Lateral Movement", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: Lateral Movement"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E51", "label": "T1021: Remote Services", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1021: Remote Services"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E52", "label": "T1550.002: Pass the Hash", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1550.002: Pass the Hash"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E53", "label": "T1570: Lateral Tool Transfer", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1570: Lateral Tool Transfer"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E54", "label": "Collection", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: Collection"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E55", "label": "T1560.001: Archive via Utility", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1560.001: Archive via Utility"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E56", "label": "T1056.001: Keylogging", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1056.001: Keylogging"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E57", "label": "Exfiltration", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: Exfiltration"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E58", "label": "T1041: Exfiltration Over C2 Channel", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1041: Exfiltration Over C2 Channel"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E59", "label": "Impact", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: Impact"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E60", "label": "T1486: Data Encrypted for Impact", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1486: Data Encrypted for Impact"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E61", "label": "Command and Control", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: Command and Control"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E62", "label": "Execution", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: Execution"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E63", "label": "T1059: Command and Scripting Interpreter", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1059: Command and Scripting Interpreter"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E64", "label": "T1204.002: Malicious File", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1204.002: Malicious File"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E65", "label": "Defense Evasion", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: Defense Evasion"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E66", "label": "T1027: Obfuscated Files or Information", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1027: Obfuscated Files or Information"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E67", "label": "T1562.004: Disable or Modify System Firewall", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1562.004: Disable or Modify System Firewall"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E68", "label": "Credential Access", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: Credential Access"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E69", "label": "T1003: OS Credential Dumping", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: T1003: OS Credential Dumping"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E70", "label": "attackers", "shape": "dot", "title": "Type: Threat_Actor\nAliases: attackers"}, {"color": "#2ECC71", "font": {"color": "white"}, "id": "G_E71", "label": "target organizations", "shape": "dot", "title": "Type: Victim_Asset\nAliases: target organizations"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E72", "label": "ransomware", "shape": "dot", "title": "Type: Malware\nAliases: ransomware"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E73", "label": "Credential stealers", "shape": "dot", "title": "Type: Malware\nAliases: Credential stealers"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E74", "label": "backdoors", "shape": "dot", "title": "Type: Malware\nAliases: backdoors"}, {"color": "#4B9AFF", "font": {"color": "white"}, "id": "G_E75", "label": "utilities", "shape": "dot", "title": "Type: Tool\nAliases: utilities"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E76", "label": "tunnelers", "shape": "dot", "title": "Type: Malware\nAliases: tunnelers"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E77", "label": "downloaders", "shape": "dot", "title": "Type: Malware\nAliases: downloaders"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E78", "label": "droppers", "shape": "dot", "title": "Type: Malware\nAliases: droppers"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E79", "label": "keyloggers", "shape": "dot", "title": "Type: Malware\nAliases: keyloggers"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E80", "label": "launchers", "shape": "dot", "title": "Type: Malware\nAliases: launchers"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E81", "label": "installers", "shape": "dot", "title": "Type: Malware\nAliases: installers"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E82", "label": "uploaders", "shape": "dot", "title": "Type: Malware\nAliases: uploaders"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E83", "label": "BEACON", "shape": "dot", "title": "Type: Malware\nAliases: BEACON"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E84", "label": "RANSOMHUB", "shape": "dot", "title": "Type: Malware\nAliases: RANSOMHUB"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E85", "label": "REDBIKE (aka Akira)", "shape": "dot", "title": "Type: Malware\nAliases: REDBIKE (aka Akira)"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E86", "label": "Akira", "shape": "dot", "title": "Type: Malware\nAliases: Akira"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E87", "label": "BASTA", "shape": "dot", "title": "Type: Malware\nAliases: BASTA"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E88", "label": "LOCKBIT", "shape": "dot", "title": "Type: Malware\nAliases: LOCKBIT"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E89", "label": "SYSTEMBC", "shape": "dot", "title": "Type: Malware\nAliases: SYSTEMBC"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E91", "label": "threat actors", "shape": "dot", "title": "Type: Threat_Actor\nAliases: threat actors, Threat actors"}, {"color": "#4B9AFF", "font": {"color": "white"}, "id": "G_E92", "label": "remote control and administration tools", "shape": "dot", "title": "Type: Tool\nAliases: remote control and administration tools, remote administration tools"}, {"color": "#4B9AFF", "font": {"color": "white"}, "id": "G_E93", "label": "publicly available and legitimate tools", "shape": "dot", "title": "Type: Tool\nAliases: publicly available and legitimate tools"}, {"color": "#4B9AFF", "font": {"color": "white"}, "id": "G_E94", "label": "credential extraction tools", "shape": "dot", "title": "Type: Tool\nAliases: credential extraction tools"}, {"color": "#4B9AFF", "font": {"color": "white"}, "id": "G_E95", "label": "commercially avail- able or legitimate tools", "shape": "dot", "title": "Type: Tool\nAliases: commercially avail- able or legitimate tools"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E96", "label": "ransomware deployments", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: ransomware deployments"}, {"color": "#2ECC71", "font": {"color": "white"}, "id": "G_E97", "label": "targets", "shape": "dot", "title": "Type: Victim_Asset\nAliases: targets"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E98", "label": "SNOWLIGHT downloader", "shape": "dot", "title": "Type: Malware\nAliases: SNOWLIGHT downloader"}, {"color": "#2ECC71", "font": {"color": "white"}, "id": "G_E99", "label": "configuration files", "shape": "dot", "title": "Type: Victim_Asset\nAliases: configuration files"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E100", "label": "BEACON backdoor", "shape": "dot", "title": "Type: Malware\nAliases: BEACON backdoor"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E101", "label": "zero-day exploitation", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: zero-day exploitation"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E102", "label": "UNC5221", "shape": "dot", "title": "Type: Threat_Actor\nAliases: UNC5221"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E103", "label": "custom malware", "shape": "dot", "title": "Type: Malware\nAliases: custom malware"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E104", "label": "another actor", "shape": "dot", "title": "Type: Threat_Actor\nAliases: another actor"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E105", "label": "SLIVER", "shape": "dot", "title": "Type: Malware\nAliases: SLIVER"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E106", "label": "TERRIBLETEA backdoors", "shape": "dot", "title": "Type: Malware\nAliases: TERRIBLETEA backdoors"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E107", "label": "XMRIG", "shape": "dot", "title": "Type: Malware\nAliases: XMRIG"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E108", "label": "APT41", "shape": "dot", "title": "Type: Threat_Actor\nAliases: APT41"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E109", "label": "ANTSWORD", "shape": "dot", "title": "Type: Malware\nAliases: ANTSWORD"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E110", "label": "UNC3886", "shape": "dot", "title": "Type: Threat_Actor\nAliases: UNC3886"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E111", "label": "GHOSTTOWN", "shape": "dot", "title": "Type: Malware\nAliases: GHOSTTOWN"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E112", "label": "UNC1543", "shape": "dot", "title": "Type: Threat_Actor\nAliases: UNC1543, UNC4536"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E113", "label": "NUMOZYLOD", "shape": "dot", "title": "Type: Malware\nAliases: NUMOZYLOD"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E114", "label": "ALPHV", "shape": "dot", "title": "Type: Threat_Actor\nAliases: ALPHV"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E115", "label": "UNC5155", "shape": "dot", "title": "Type: Threat_Actor\nAliases: UNC5155"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E116", "label": "SILENTNIGHT", "shape": "dot", "title": "Type: Malware\nAliases: SILENTNIGHT"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E117", "label": "APT44", "shape": "dot", "title": "Type: Threat_Actor\nAliases: APT44"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E118", "label": "DARKCRYSTALRAT", "shape": "dot", "title": "Type: Malware\nAliases: DARKCRYSTALRAT"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E119", "label": "APT28", "shape": "dot", "title": "Type: Threat_Actor\nAliases: APT28"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E120", "label": "RHYSIDA", "shape": "dot", "title": "Type: Threat_Actor\nAliases: RHYSIDA"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E121", "label": "REDBIKE (AKIRA)", "shape": "dot", "title": "Type: Threat_Actor\nAliases: REDBIKE (AKIRA)"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E122", "label": "WHOAMI", "shape": "dot", "title": "Type: Malware\nAliases: WHOAMI"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E123", "label": "UNC2165", "shape": "dot", "title": "Type: Threat_Actor\nAliases: UNC2165, UNC2565"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E124", "label": "FAKEUPDATES", "shape": "dot", "title": "Type: Malware\nAliases: FAKEUPDATES"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E125", "label": "EXMATTER", "shape": "dot", "title": "Type: Malware\nAliases: EXMATTER"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E126", "label": "CLICKSINK", "shape": "dot", "title": "Type: Malware\nAliases: CLICKSINK"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E127", "label": "UNC4393", "shape": "dot", "title": "Type: Threat_Actor\nAliases: UNC4393, UNC4696"}, {"color": "#4B9AFF", "font": {"color": "white"}, "id": "G_E128", "label": "ANYDESK", "shape": "dot", "title": "Type: Tool\nAliases: ANYDESK"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E129", "label": "UNC5537", "shape": "dot", "title": "Type: Threat_Actor\nAliases: UNC5537"}, {"color": "#4B9AFF", "font": {"color": "white"}, "id": "G_E130", "label": "SIMPLEHELP", "shape": "dot", "title": "Type: Tool\nAliases: SIMPLEHELP"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E131", "label": "GOOTLOADER", "shape": "dot", "title": "Type: Malware\nAliases: GOOTLOADER"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E132", "label": "UNC5820", "shape": "dot", "title": "Type: Threat_Actor\nAliases: UNC5820"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E133", "label": "UNC3319", "shape": "dot", "title": "Type: Threat_Actor\nAliases: UNC3319"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E134", "label": "UNC5606", "shape": "dot", "title": "Type: Threat_Actor\nAliases: UNC5606"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E135", "label": "LUMMAC.V2", "shape": "dot", "title": "Type: Malware\nAliases: LUMMAC.V2"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E136", "label": "Espionage", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: Espionage"}, {"color": "#FF4B4B", "font": {"color": "white"}, "id": "G_E137", "label": "UNC5791", "shape": "dot", "title": "Type: Threat_Actor\nAliases: UNC5791"}, {"color": "#FFD700", "font": {"color": "white"}, "id": "G_E138", "label": "SIGSEGA", "shape": "dot", "title": "Type: Malware\nAliases: SIGSEGA"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E139", "label": "SNOWLIGHT downloader deployment", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: SNOWLIGHT downloader deployment"}, {"color": "#FFA500", "font": {"color": "white"}, "id": "G_E140", "label": "BEACON backdoor usage", "shape": "dot", "title": "Type: Attack_Pattern\nAliases: BEACON backdoor usage"}]);
+                  edges = new vis.DataSet([{"arrows": "to", "color": "#AAAAAA", "dashes": true, "from": "G_E30", "label": "BEFORE", "to": "G_E33"}, {"arrows": "to", "color": "#AAAAAA", "dashes": true, "from": "G_E33", "label": "BEFORE", "to": "G_E37"}, {"arrows": "to", "color": "#AAAAAA", "dashes": true, "from": "G_E37", "label": "BEFORE", "to": "G_E41"}, {"arrows": "to", "color": "#AAAAAA", "dashes": true, "from": "G_E41", "label": "BEFORE", "to": "G_E44"}, {"arrows": "to", "color": "#AAAAAA", "dashes": true, "from": "G_E44", "label": "BEFORE", "to": "G_E47"}, {"arrows": "to", "color": "#AAAAAA", "dashes": true, "from": "G_E47", "label": "BEFORE", "to": "G_E50"}, {"arrows": "to", "color": "#AAAAAA", "dashes": true, "from": "G_E50", "label": "BEFORE", "to": "G_E54"}, {"arrows": "to", "color": "#AAAAAA", "dashes": true, "from": "G_E54", "label": "BEFORE", "to": "G_E57"}, {"arrows": "to", "color": "#AAAAAA", "dashes": true, "from": "G_E57", "label": "BEFORE", "to": "G_E59"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E1", "label": "USES", "to": "G_E38"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E3", "label": "USES", "to": "G_E10"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E35", "label": "USES", "to": "G_E6"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E35", "label": "USES", "to": "G_E8"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E43", "label": "USES", "to": "G_E7"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E63", "label": "USES", "to": "G_E11"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E63", "label": "USES", "to": "G_E12"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E53", "label": "USES", "to": "G_E13"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E55", "label": "USES", "to": "G_E14"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E64", "label": "USES", "to": "G_E8"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E39", "label": "TARGETS", "to": "G_E20"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E42", "label": "TARGETS", "to": "G_E21"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E46", "label": "TARGETS", "to": "G_E22"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E48", "label": "TARGETS", "to": "G_E23"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E49", "label": "TARGETS", "to": "G_E28"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E51", "label": "TARGETS", "to": "G_E24"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E69", "label": "TARGETS", "to": "G_E25"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E69", "label": "TARGETS", "to": "G_E26"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E58", "label": "TARGETS", "to": "G_E16"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E36", "label": "TARGETS", "to": "G_E15"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E67", "label": "TARGETS", "to": "G_E29"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E38", "label": "EXPLOITS", "to": "G_E5"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E38", "label": "TARGETS", "to": "G_E19"}, {"arrows": "to", "color": "#AAAAAA", "dashes": true, "from": "G_E11", "label": "BEFORE", "to": "G_E63"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E70", "label": "TARGETS", "to": "G_E71"}, {"arrows": "to", "color": "#AAAAAA", "dashes": true, "from": "G_E85", "label": "SIMULTANEOUS", "to": "G_E86"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E91", "label": "USES", "to": "G_E92"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E91", "label": "USES", "to": "G_E72"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E91", "label": "USES", "to": "G_E93"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E91", "label": "USES", "to": "G_E94"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E91", "label": "USES", "to": "G_E73"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E91", "label": "USES", "to": "G_E92"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E91", "label": "USES", "to": "G_E95"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E91", "label": "TARGETS", "to": "G_E97"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E96", "label": "TARGETS", "to": "G_E97"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E139", "label": "USES", "to": "G_E98"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E30", "label": "TARGETS", "to": "G_E99"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E140", "label": "USES", "to": "G_E100"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E101", "label": "EXPLOITS", "to": "G_E4"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E101", "label": "EXPLOITS", "to": "G_E4"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E102", "label": "USES", "to": "G_E103"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E102", "label": "USES", "to": "G_E7"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E104", "label": "USES", "to": "G_E105"}, {"arrows": "to", "color": "#5DADE2", "dashes": false, "from": "G_E104", "label": "USES", "to": "G_E106"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+                      network.on("stabilizationProgress", function(params) {
+                          document.getElementById('loadingBar').removeAttribute("style");
+                          var maxWidth = 496;
+                          var minWidth = 20;
+                          var widthFactor = params.iterations/params.total;
+                          var width = Math.max(minWidth,maxWidth * widthFactor);
+                          document.getElementById('bar').style.width = width + 'px';
+                          document.getElementById('text').innerHTML = Math.round(widthFactor*100) + '%';
+                      });
+                      network.once("stabilizationIterationsDone", function() {
+                          document.getElementById('text').innerHTML = '100%';
+                          document.getElementById('bar').style.width = '496px';
+                          document.getElementById('loadingBar').style.opacity = 0;
+                          // really clean the dom element
+                          setTimeout(function () {document.getElementById('loadingBar').style.display = 'none';}, 500);
+                      });
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>
