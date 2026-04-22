@@ -12,7 +12,7 @@ from Main.CTIDocumentExtractor import CTIDocumentExtractor
 
 
 class CTISemanticChunker:
-    def __init__(self, model_name: str = 'all-MiniLM-L6-v2', similarity_threshold: float = 0.35, overlap_sentences: int = 1, min_sentences: int = 3, device: str = 'cpu', batch_size: int = 32):
+    def __init__(self, model_name: str = 'all-MiniLM-L6-v2', similarity_threshold: float = 0.35, overlap_sentences: int = 1, min_sentences: int = 5, device: str = 'cpu', batch_size: int = 32):
         self.encoder = SentenceTransformer(model_name, device=device)
         self.similarity_threshold = similarity_threshold
         self.overlap = overlap_sentences
@@ -43,7 +43,7 @@ class CTISemanticChunker:
         for i, sim in enumerate(sim_scores):
             # i compare la phrase i et i+1
             if sim < self.similarity_threshold:
-                # On ne coupe que si le chunk atteint la taille critique (Point 1 & 3)
+                # On ne coupe que si le chunk atteint la taille critique
                 if (i + 1) - last_boundary >= self.min_sentences:
                     boundaries.append(i + 1)
                     last_boundary = i + 1

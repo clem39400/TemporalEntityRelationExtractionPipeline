@@ -32,7 +32,7 @@ class CTIDocumentExtractor:
             return ""
 
     def _extract_pdf_heuristic(self, pdf_path: str) -> str:
-        """Extrait le texte du PDF en filtrant géométriquement les marges."""
+        """Extrait le texte du PDF en filtrant les marges."""
         valid_text_blocks = []
         try:
             doc = fitz.open(pdf_path)
