@@ -1,14 +1,23 @@
 import json
 import os
+import re
 from sentence_transformers import SentenceTransformer, util
-import torch
 
-# --- CONFIGURATION ---
-BASE_PATH = "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main"
-INPUT_RESULTS = os.path.join(BASE_PATH, "ExtractedResults", "results_few_shot.json")
-OUTPUT_GRAPH = os.path.join(BASE_PATH, "ExtractedResults", "Reconciled_Knowledge_Graph.json")
 
-def reconcile_graph(input_path, output_path, similarity_threshold=0.85):
+# --- NOUVEAU : Règles strictes ---
+# Expressions régulières pour cibler les identifiants normés (CVE, UNC, APT, FIN)
+REGEX_STRICT_ENTITIES = [
+    re.compile(r"^CVE-\d{4}-\d+$", re.IGNORECASE),
+    re.compile(r"^(UNC|APT|FIN)\d+$", re.IGNORECASE)
+]
+
+def requires_strict_match(mention: str) -> bool:
+    """Vérifie si la mention correspond à un identifiant strict qui ne doit pas être fusionné par similarité."""
+    mention_clean = mention.strip()
+    return any(regex.search(mention_clean) for regex in REGEX_STRICT_ENTITIES)
+
+# NOUVEAU : Ajout du paramètre malware_threshold
+def reconcile_graph(input_path, output_path, similarity_threshold=0.85, malware_threshold=0.95):
     if not os.path.exists(input_path):
         print(f"Erreur : Le fichier {input_path} est introuvable.")
         return
@@ -19,7 +28,7 @@ def reconcile_graph(input_path, output_path, similarity_threshold=0.85):
     print("Chargement du modèle de similarité sémantique...")
     model = SentenceTransformer('all-MiniLM-L6-v2')
 
-    global_entities = {} # {global_id: {type, mentions, embedding}}
+    global_entities = {} # {global_id: {type, mentions, embedding, is_strict}}
     global_relations = []
     local_to_global_map = {} # { "C331_E1": "G_E1" }
     global_id_counter = 1
@@ -40,15 +49,34 @@ def reconcile_graph(input_path, output_path, similarity_threshold=0.85):
             mention = ent["mention"].strip()
             mention_lower = mention.lower()
 
+            # Déterminer si l'entité courante est stricte
+            is_strict_local = requires_strict_match(mention)
+
             ent_emb = model.encode(mention_lower, convert_to_tensor=True)
             matched_global_id = None
 
             # Comparaison avec les entités globales existantes
             for g_id, g_data in global_entities.items():
                 if g_data["type"] == ent_type:
-                    # Match Exact ou Similarité Sémantique
-                    sim = util.cos_sim(ent_emb, g_data["embedding"]).item()
-                    if mention_lower in g_data["mentions_lower"] or sim >= similarity_threshold:
+                    is_match = False
+
+                    # --- NOUVEAU : Logique de comparaison hybride ---
+                    # Si l'entité locale ou l'entité globale est "stricte" (ex: CVE-2024-3400)
+                    if is_strict_local or g_data["is_strict"]:
+                        # On exige une correspondance lexicale parfaite
+                        if mention_lower in g_data["mentions_lower"]:
+                            is_match = True
+                    else:
+                        # Sinon, on utilise la similarité sémantique
+                        sim = util.cos_sim(ent_emb, g_data["embedding"]).item()
+
+                        # Seuil dynamique : plus haut si c'est un Malware
+                        current_threshold = malware_threshold if ent_type == "Malware" else similarity_threshold
+
+                        if mention_lower in g_data["mentions_lower"] or sim >= current_threshold:
+                            is_match = True
+
+                    if is_match:
                         matched_global_id = g_id
                         g_data["mentions"].add(mention)
                         g_data["mentions_lower"].add(mention_lower)
@@ -62,7 +90,8 @@ def reconcile_graph(input_path, output_path, similarity_threshold=0.85):
                     "type": ent_type,
                     "mentions": {mention},
                     "mentions_lower": {mention_lower},
-                    "embedding": ent_emb
+                    "embedding": ent_emb,
+                    "is_strict": is_strict_local # NOUVEAU : Sauvegarde du statut strict
                 }
                 local_to_global_map[local_id] = new_g_id
                 global_id_counter += 1
@@ -98,4 +127,10 @@ def reconcile_graph(input_path, output_path, similarity_threshold=0.85):
     print(f"Réconciliation terminée : {len(final_nodes)} entités globales créées.")
 
 if __name__ == "__main__":
+
+    '''
+    BASE_PATH = "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main"
+    INPUT_RESULTS = os.path.join(BASE_PATH, "ExtractedResults", "results_few_shot.json")
+    OUTPUT_GRAPH = os.path.join(BASE_PATH, "ExtractedResults", "Reconciled_Knowledge_Graph.json")
     reconcile_graph(INPUT_RESULTS, OUTPUT_GRAPH)
+    '''

@@ -2,10 +2,7 @@ import json
 import os
 from pyvis.network import Network
 
-# --- CONFIGURATION ---
-BASE_PATH = "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main"
-INPUT_GRAPH = os.path.join(BASE_PATH, "ExtractedResults", "Cleaned_Knowledge_Graph.json")
-OUTPUT_HTML = os.path.join(BASE_PATH, "ExtractedResults", "Visualisation_Graphe.html")
+
 
 def visualize_graph(json_path, output_html):
     if not os.path.exists(json_path):
@@ -59,4 +56,10 @@ def visualize_graph(json_path, output_html):
     print(f"Visualisation générée avec succès : {output_html}")
 
 if __name__ == "__main__":
+
+    ''' --- CONFIGURATION ---
+    BASE_PATH = "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main"
+    INPUT_GRAPH = os.path.join(BASE_PATH, "ExtractedResults", "Cleaned_Knowledge_Graph.json")
+    OUTPUT_HTML = os.path.join(BASE_PATH, "ExtractedResults", "Visualisation_Graphe.html")
     visualize_graph(INPUT_GRAPH, OUTPUT_HTML)
+    '''
