@@ -21,7 +21,7 @@ from Main.Utils import parse_json_from_response, get_rocade_few_shot_prompt, get
 
 CONFIG = {
     # --- Chemins ---
-    "input_directory": "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main\\InputData",
+    "input_directory": "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main\\Casie\\testing\\source",
     "output_directory": "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main\\ExtractedResults",
 
     # --- Phase 1 & 2 : Extraction et LLM ---
