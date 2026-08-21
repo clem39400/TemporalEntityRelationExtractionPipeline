@@ -4,7 +4,7 @@ import re
 from sentence_transformers import SentenceTransformer, util
 
 
-# --- NOUVEAU : Règles strictes ---
+# --- Règles strictes ---
 # Expressions régulières pour cibler les identifiants normés (CVE, UNC, APT, FIN)
 REGEX_STRICT_ENTITIES = [
     re.compile(r"^CVE-\d{4}-\d+$", re.IGNORECASE),
@@ -16,7 +16,6 @@ def requires_strict_match(mention: str) -> bool:
     mention_clean = mention.strip()
     return any(regex.search(mention_clean) for regex in REGEX_STRICT_ENTITIES)
 
-# NOUVEAU : Ajout du paramètre malware_threshold
 def reconcile_graph(input_path, output_path, similarity_threshold=0.85, malware_threshold=0.95):
     if not os.path.exists(input_path):
         print(f"Erreur : Le fichier {input_path} est introuvable.")
@@ -38,15 +37,22 @@ def reconcile_graph(input_path, output_path, similarity_threshold=0.85, malware_
     for entry in extracted_data:
         if not entry.get("extraction"): continue
 
-        chunk_id = entry["chunk_metadata"]["chunk_id"]
+        chunk_id = entry["chunk_metadata"].get("chunk_id", "unknown")
         entities = entry["extraction"].get("entities", [])
         relations = entry["extraction"].get("relations", [])
 
         # 1. Résolution d'Entités (Entity Resolution)
         for ent in entities:
-            local_id = ent["id"]
-            ent_type = ent["type"]
-            mention = ent["mention"].strip()
+            # Récupération tolérante pour l'ID et le type
+            local_id = ent.get("id", "")
+            ent_type = ent.get("type", ent.get("rocade_type", "Unknown"))
+
+            # Récupération tolérante de la valeur texte de l'entité
+            mention = ent.get("mention", ent.get("name", ent.get("text", ent.get("entity", ""))))
+            if not mention or not local_id:
+                continue
+
+            mention = str(mention).strip()
             mention_lower = mention.lower()
 
             # Déterminer si l'entité courante est stricte
@@ -60,8 +66,7 @@ def reconcile_graph(input_path, output_path, similarity_threshold=0.85, malware_
                 if g_data["type"] == ent_type:
                     is_match = False
 
-                    # --- NOUVEAU : Logique de comparaison hybride ---
-                    # Si l'entité locale ou l'entité globale est "stricte" (ex: CVE-2024-3400)
+                    # Logique de comparaison hybride
                     if is_strict_local or g_data["is_strict"]:
                         # On exige une correspondance lexicale parfaite
                         if mention_lower in g_data["mentions_lower"]:
@@ -69,7 +74,6 @@ def reconcile_graph(input_path, output_path, similarity_threshold=0.85, malware_
                     else:
                         # Sinon, on utilise la similarité sémantique
                         sim = util.cos_sim(ent_emb, g_data["embedding"]).item()
-
                         # Seuil dynamique : plus haut si c'est un Malware
                         current_threshold = malware_threshold if ent_type == "Malware" else similarity_threshold
 
@@ -91,21 +95,28 @@ def reconcile_graph(input_path, output_path, similarity_threshold=0.85, malware_
                     "mentions": {mention},
                     "mentions_lower": {mention_lower},
                     "embedding": ent_emb,
-                    "is_strict": is_strict_local # NOUVEAU : Sauvegarde du statut strict
+                    "is_strict": is_strict_local # Sauvegarde du statut strict
                 }
                 local_to_global_map[local_id] = new_g_id
                 global_id_counter += 1
 
         # 2. Migration des Relations (Relation Mapping)
         for rel in relations:
-            src_global = local_to_global_map.get(rel["source"])
-            tgt_global = local_to_global_map.get(rel["target"])
+            # Tolérance sur les clés de liaison (source/target ou subject_id/object_id)
+            src_local = rel.get("source", rel.get("subject_id", ""))
+            tgt_local = rel.get("target", rel.get("object_id", ""))
+
+            src_global = local_to_global_map.get(src_local)
+            tgt_global = local_to_global_map.get(tgt_local)
+
+            # Tolérance sur le nom de la clé définissant la relation
+            rel_type = rel.get("relation_type", rel.get("predicate", rel.get("relation", "UNKNOWN")))
 
             if src_global and tgt_global:
                 global_relations.append({
                     "source": src_global,
                     "target": tgt_global,
-                    "relation_type": rel["relation_type"],
+                    "relation_type": rel_type,
                     "provenance": f"chunk_{chunk_id}"
                 })
 
@@ -127,10 +138,4 @@ def reconcile_graph(input_path, output_path, similarity_threshold=0.85, malware_
     print(f"Réconciliation terminée : {len(final_nodes)} entités globales créées.")
 
 if __name__ == "__main__":
-
-    '''
-    BASE_PATH = "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main"
-    INPUT_RESULTS = os.path.join(BASE_PATH, "ExtractedResults", "results_few_shot.json")
-    OUTPUT_GRAPH = os.path.join(BASE_PATH, "ExtractedResults", "Reconciled_Knowledge_Graph.json")
-    reconcile_graph(INPUT_RESULTS, OUTPUT_GRAPH)
-    '''
+    pass

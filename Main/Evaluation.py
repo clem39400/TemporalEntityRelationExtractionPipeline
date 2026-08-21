@@ -2,7 +2,7 @@ import json
 import os
 from sentence_transformers import SentenceTransformer, util
 
-# Import de ton nouvel utilitaire TRAM
+# Import de ton utilitaire TRAM
 from Main.TRAMUtils import TRAMUtils
 
 def get_triples_from_graph_dict(graph_data):
@@ -10,7 +10,6 @@ def get_triples_from_graph_dict(graph_data):
     Extrait un set de triplets (Source, Relation, Cible) à partir d'un dictionnaire
     contenant des 'nodes' et des 'edges' (Format ROCADE réconcilié).
     """
-    # On mappe l'ID du nœud vers son label textuel principal (en minuscules pour l'évaluation)
     node_map = {node["id"]: node["labels"][0].lower().strip() for node in graph_data.get("nodes", [])}
     triples = set()
 
@@ -19,32 +18,67 @@ def get_triples_from_graph_dict(graph_data):
         tgt_label = node_map.get(edge["target"], "")
         rel_type = edge["relation_type"].upper()
 
-        # On n'ajoute que si la source et la cible ont bien été trouvées
         if src_label and tgt_label:
             triples.add((src_label, rel_type, tgt_label))
 
     return triples
 
-def load_predicted_triples(predicted_graph_path):
-    """Charge les prédictions générées par le LLM (Graphe réconcilié/nettoyé)."""
+def load_predicted_triples_with_normalization(predicted_graph_path, attack_dict_path):
+    """
+    Charge les prédictions du LLM et tente de mapper les libellés textuels
+    vers les IDs ATT&CK officiels en utilisant le dictionnaire.
+    """
     with open(predicted_graph_path, 'r', encoding='utf-8') as f:
         graph_data = json.load(f)
-    return get_triples_from_graph_dict(graph_data)
 
-def load_tram_ground_truth(tram_path, attack_dict_path, default_actor="threat actor"):
-    """Charge la vérité terrain depuis TRAM et la convertit en triplets ROCADE."""
+    # Charger le dictionnaire ATT&CK pour faire la correspondance inverse (Nom -> ID)
+    with open(attack_dict_path, 'r', encoding='utf-8') as f:
+        attack_data = json.load(f)
+
+    name_to_id = {}
+    for obj in attack_data.get("objects", []):
+        if obj.get("type") == "attack-pattern":
+            name = obj.get("name", "").lower().strip()
+            external_ids = [ref["external_id"] for ref in obj.get("external_references", []) if ref.get("source_name") == "mitre-attack"]
+            if external_ids and name:
+                name_to_id[name] = external_ids[0].lower()
+
+    node_map = {node["id"]: node["labels"][0].lower().strip() for node in graph_data.get("nodes", [])}
+    triples = set()
+
+    for edge in graph_data.get("edges", []):
+        src_label = node_map.get(edge["source"], "").replace("attackers", "threat actor") # Normalisation de l'acteur
+        tgt_label = node_map.get(edge["target"], "")
+        rel_type = edge["relation_type"].upper()
+
+        if src_label and tgt_label:
+            # Tentative de correspondance avec un ID ATT&CK si le texte y ressemble
+            normalized_tgt = tgt_label
+            for tech_name, tech_id in name_to_id.items():
+                if tech_name in tgt_label or tgt_label in tech_name:
+                    normalized_tgt = f"{tech_id} - {tech_name}"
+                    break
+
+            triples.add((src_label, rel_type, normalized_tgt))
+
+    return triples
+
+def load_tram_ground_truth_from_db(tram_db_path, attack_dict_path, default_actor="threat actor", max_sentence_id=None):
+    """Charge la vérité terrain directement depuis la base SQLite TRAM et la convertit en triplets ROCADE."""
     tram_utils = TRAMUtils(attack_dict_path)
-    gt_graph_data = tram_utils.extract_tram_ground_truth(tram_path, default_actor=default_actor)
+    # Utilisation de la méthode SQLite avec la limite de phrases
+    gt_graph_data = tram_utils.extract_tram_ground_truth_from_sqlite(tram_db_path, default_actor=default_actor, max_sentence_id=max_sentence_id)
     return get_triples_from_graph_dict(gt_graph_data)
 
-def evaluate_pipeline(tram_export_path, attack_dict_path, predicted_graph_path, default_actor="threat actor", similarity_threshold=0.80):
+def evaluate_pipeline(tram_db_path, attack_dict_path, predicted_graph_path, default_actor="threat actor", similarity_threshold=0.80, max_sentence_id=None):
     print(f"\n{'='*50}")
-    print("ÉVALUATION DES PERFORMANCES DU GRAPHE (TRAM)")
+    print("ÉVALUATION DES PERFORMANCES DU GRAPHE (TRAM SQLite)")
     print(f"{'='*50}")
 
-    # Chargement unifié via la nouvelle structure
-    gt_triples = load_tram_ground_truth(tram_export_path, attack_dict_path, default_actor)
-    pred_triples = load_predicted_triples(predicted_graph_path)
+    # Chargement unifié depuis la base SQLite TRAM avec la limite activée
+    gt_triples = load_tram_ground_truth_from_db(tram_db_path, attack_dict_path, default_actor, max_sentence_id)
+    pred_triples = load_predicted_triples_with_normalization(predicted_graph_path, attack_dict_path)
+
 
     print(f"[*] Vérité terrain TRAM (Total) : {len(gt_triples)} triplets")
     print(f"[*] Prédictions LLM (Total)     : {len(pred_triples)} triplets")
@@ -103,13 +137,15 @@ def evaluate_pipeline(tram_export_path, attack_dict_path, predicted_graph_path, 
         if best_gt_idx != -1:
             soft_tp += 1
             matched_gt_indices.add(best_gt_idx)
-            matched_pred_indices.add(p_idx) # On mémorise la prédiction repêchée
+            matched_pred_indices.add(p_idx)
 
-    # --- 3. ISOLER LES ERREURS POUR L'AFFICHAGE ---
-    final_fp_list = [pred for idx, pred in enumerate(remaining_pred) if idx not in matched_pred_indices]
-    final_fn_list = [gt for idx, gt in enumerate(remaining_gt) if idx not in matched_gt_indices]
+    print("\n--- EXEMPLE DE VÉRITÉ TERRAIN (TRAM) ---")
+    print(list(gt_triples)[:3])
 
-    # --- 4. CALCUL DES MÉTRIQUES ---
+    print("\n--- EXEMPLE DE PRÉDICTIONS (LLM) ---")
+    print(list(pred_triples)[:3])
+
+    # --- 3. CALCUL DES MÉTRIQUES ---
     exact_fp = len(pred_triples) - exact_tp
     exact_fn = len(gt_triples) - exact_tp
     e_prec = exact_tp / (exact_tp + exact_fp) if (exact_tp + exact_fp) > 0 else 0.0
@@ -123,7 +159,30 @@ def evaluate_pipeline(tram_export_path, attack_dict_path, predicted_graph_path, 
     s_rec = total_tp / (total_tp + soft_fn) if (total_tp + soft_fn) > 0 else 0.0
     s_f1 = 2 * (s_prec * s_rec) / (s_prec + s_rec) if (s_prec + s_rec) > 0 else 0.0
 
-    # --- 5. AFFICHAGE DES RÉSULTATS ---
+    # --- NOUVELLE ÉVALUATION : EXTRACTION DES TECHNIQUES (ENTITÉS) ---
+    print(f"\n{'='*50}")
+    print("ÉVALUATION CIBLÉE : EXTRACTION DES TECHNIQUES MITRE ATT&CK")
+    print(f"{'='*50}")
+
+    # On isole uniquement les cibles (targets) qui commencent par "t" suivi d'un chiffre (les IDs ATT&CK)
+    gt_techniques = set([tgt for _, _, tgt in gt_triples if tgt.startswith('t1')])
+    pred_techniques = set([tgt for _, _, tgt in pred_triples if tgt.startswith('t1')])
+
+    tech_tp = len(gt_techniques.intersection(pred_techniques))
+    tech_fp = len(pred_techniques - gt_techniques)
+    tech_fn = len(gt_techniques - pred_techniques)
+
+    tech_prec = tech_tp / (tech_tp + tech_fp) if (tech_tp + tech_fp) > 0 else 0.0
+    tech_rec = tech_tp / (tech_tp + tech_fn) if (tech_tp + tech_fn) > 0 else 0.0
+    tech_f1 = 2 * (tech_prec * tech_rec) / (tech_prec + tech_rec) if (tech_prec + tech_rec) > 0 else 0.0
+
+    print(f"- Techniques Vraies Positives (TP) : {tech_tp}")
+    print(f"- Techniques Fausses Positives (FP) : {tech_fp}")
+    print(f"- Techniques Fausses Négatives (FN) : {tech_fn}")
+    print("-" * 30)
+    print(f"Précision: {tech_prec:.4f} | Rappel: {tech_rec:.4f} | F1-Score: {tech_f1:.4f}\n")
+
+    # --- 4. AFFICHAGE DES RÉSULTATS ---
     print(f"\n[MÉTRIQUES EXACT MATCH]")
     print(f"- Vrais Positifs (TP)  : {exact_tp}")
     print(f"- Faux Positifs (FP)   : {exact_fp}")
@@ -138,42 +197,20 @@ def evaluate_pipeline(tram_export_path, attack_dict_path, predicted_graph_path, 
     print("-" * 30)
     print(f"Précision : {s_prec:.4f} | Rappel : {s_rec:.4f} | F1-Score : {s_f1:.4f}\n")
 
-    # --- 6. DEBUG: AFFICHAGE DES ERREURS ---
-    print(f"{'='*50}")
-    print("ANALYSE DES ERREURS (Après Soft Match)")
-    print(f"{'='*50}")
-
-    print("\n[FAUX POSITIFS] - Générés par le LLM mais absents ou rejetés par TRAM :")
-    if not final_fp_list:
-        print("  Aucun.")
-    for src, rel, tgt in sorted(final_fp_list):
-        print(f"  (+) '{src}' -> [{rel}] -> '{tgt}'")
-
-    print("\n[FAUX NÉGATIFS] - Présents dans TRAM mais manqués par le LLM :")
-    if not final_fn_list:
-        print("  Aucun.")
-    for src, rel, tgt in sorted(final_fn_list):
-        print(f"  (-) '{src}' -> [{rel}] -> '{tgt}'")
-    print(f"{'='*50}\n")
-
     return e_f1, s_f1
 
 if __name__ == "__main__":
-    # Chemins à mettre à jour selon ton arborescence locale
+    # Chemins mis à jour pour pointer vers ta base SQLite TRAM et ton dictionnaire STIX
+    TRAM_DB_PATH = r"C:\Users\cleme\IdeaProjects\tram\data\db.sqlite3"
+    ATTACK_DICT_PATH = r"C:\Users\cleme\IdeaProjects\tram\data\attack\enterprise-attack.json"
+
     BASE_PATH = "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main"
-
-    # Nouveaux chemins pour pointer vers les données TRAM
-    TRAM_EXPORT_PATH = os.path.join(BASE_PATH, "Data", "tram_export.json")
-    ATTACK_DICT_PATH = os.path.join(BASE_PATH, "Data", "attack_dict.json")
-
-    # Ton graphe généré par la pipeline
     PREDICTED_GRAPH_PATH = os.path.join(BASE_PATH, "ExtractedResults", "Cleaned_few_shot.json")
 
-    # Le default_actor permet de donner un sujet (ex: "APT29", "threat actor") pour lier les techniques TRAM
     evaluate_pipeline(
-        tram_export_path=TRAM_EXPORT_PATH,
+        tram_db_path=TRAM_DB_PATH,
         attack_dict_path=ATTACK_DICT_PATH,
         predicted_graph_path=PREDICTED_GRAPH_PATH,
         default_actor="threat actor",
-        similarity_threshold=0.80
+        similarity_threshold=0.45
     )

@@ -11,7 +11,7 @@ class TRAMUtils:
 
     def _load_attack_dict(self, path: str) -> dict:
         """
-        Charge attack_dict.json pour récupérer les noms exacts des techniques.
+        Charge enterprise-attack.json (ou attack_dict.json) pour récupérer les noms exacts des techniques.
         """
         if not os.path.exists(path):
             print(f"[!] Dictionnaire introuvable : {path}")
@@ -20,13 +20,18 @@ class TRAMUtils:
         with open(path, 'r', encoding='utf-8') as f:
             data = json.load(f)
 
-        return {tid: details.get("name", "Unknown") for tid, details in data.items()}
+        # Gestion du format natif STIX/ATT&CK du MITRE si on pointe vers enterprise-attack.json
+        attack_dict = {}
+        for obj in data.get("objects", []):
+            if obj.get("type") == "attack-pattern":
+                # Récupération de l'ID ATT&CK (ex: T1059) depuis les external_references
+                external_ids = [ref["external_id"] for ref in obj.get("external_references", []) if ref.get("source_name") == "mitre-attack"]
+                if external_ids:
+                    attack_dict[external_ids[0]] = obj.get("name", "Unknown")
 
-    def extract_tram_ground_truth_from_sqlite(self, db_path: str, default_actor: str = "threat actor") -> dict:
-        """
-        Extrait directement les données de la base SQLite de TRAM pour générer
-        le graphe Ground Truth (Vérité Terrain) compatible avec l'ontologie ROCADE.
-        """
+        return attack_dict
+
+    def extract_tram_ground_truth_from_sqlite(self, db_path: str, default_actor: str = "threat actor", max_sentence_id: int = None) -> dict:
         if not os.path.exists(db_path):
             print(f"[!] Base de données SQLite introuvable : {db_path}")
             return {"nodes": [], "edges": []}
@@ -34,7 +39,6 @@ class TRAMUtils:
         gt_entities = {}
         gt_relations = []
 
-        # 1. Création de l'entité source par défaut (ex: "threat actor")
         actor_id = "G_ACTOR_1"
         gt_entities[actor_id] = {
             "id": actor_id,
@@ -46,49 +50,52 @@ class TRAMUtils:
             conn = sqlite3.connect(db_path)
             cursor = conn.cursor()
 
-            # Requête pour lier les phrases et leurs mappings ATT&CK dans TRAM
-            # (Adapte les noms de tables si le schéma local diffère légèrement)
-            query = """
-                    SELECT s.text, m.attack_id, m.name
-                    FROM sentences s
-                             JOIN mappings m ON s.id = m.sentence_id \
-                    """
+            ao_columns = [col[1] for col in cursor.execute("PRAGMA table_info(tram_attackobject);").fetchall()]
+            id_col = next((c for c in ao_columns if "external" in c or "stix" in c or "key" in c or "id" in c and c != "id"), "attack_id")
+            name_col = next((c for c in ao_columns if "name" in c or "title" in c), "name")
 
-            # Si les tables ont une structure différente, on sécurise via un try/except de requête
+            # Ajout du filtre optionnel sur l'ID de la phrase
+            where_clause = f"WHERE s.id <= {max_sentence_id}" if max_sentence_id else ""
+
+            query = f"""
+                SELECT s.id, s.text, ao.{id_col}, ao.{name_col} 
+                FROM tram_sentence s
+                JOIN tram_mapping m ON s.id = m.sentence_id
+                JOIN tram_attackobject ao ON m.attack_object_id = ao.id
+                {where_clause}
+            """
+
             cursor.execute(query)
             rows = cursor.fetchall()
             conn.close()
 
             tech_counter = 1
             for row in rows:
-                sentence_text, attack_id, tech_name_raw = row
+                sentence_id, sentence_text, attack_id, tech_name_raw = row
                 if not attack_id:
                     continue
 
-                # Résolution du nom via le dictionnaire global si possible
                 tech_name = self.attack_dict.get(attack_id, tech_name_raw or "Unknown_Technique")
                 rocade_label = f"{attack_id} - {tech_name}"
 
                 tech_node_id = f"G_TECH_{tech_counter}"
 
-                # Ajout du nœud de la technique
                 gt_entities[tech_node_id] = {
                     "id": tech_node_id,
                     "type": "Attack_Pattern",
                     "labels": [rocade_label]
                 }
 
-                # Création du triplet / relation sémantique (Actor -> USES -> Technique)
                 gt_relations.append({
                     "source": actor_id,
                     "target": tech_node_id,
                     "relation_type": "USES",
-                    "provenance": f"tram_sqlite_row_{tech_counter}"
+                    "provenance": f"tram_sqlite_row_{tech_counter}_sentence_{sentence_id}"
                 })
                 tech_counter += 1
 
         except Exception as e:
-            print(f"[!] Erreur lors de la lecture de la base SQLite TRAM : {e}")
+            print(f"[!] Erreur SQL : {e}")
 
         return {
             "metadata": {
@@ -102,8 +109,9 @@ class TRAMUtils:
 # --- Exemple d'utilisation ---
 if __name__ == "__main__":
     BASE_PATH = "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main"
-    DB_PATH = os.path.join(BASE_PATH, "Data", "tram.db")
-    ATTACK_DICT_PATH = os.path.join(BASE_PATH, "Data", "attack_dict.json")
+    DB_PATH = r"C:\Users\cleme\IdeaProjects\tram\data\db.sqlite3"
+    # Point vers le fichier enterprise-attack.json présent dans ton dossier data/attack de TRAM
+    ATTACK_DICT_PATH = r"C:\Users\cleme\IdeaProjects\tram\data\attack\enterprise-attack.json"
 
     tram_utils = TRAMUtils(ATTACK_DICT_PATH)
     ground_truth_graph = tram_utils.extract_tram_ground_truth_from_sqlite(DB_PATH, default_actor="threat actor")

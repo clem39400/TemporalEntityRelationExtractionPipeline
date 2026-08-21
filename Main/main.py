@@ -21,15 +21,15 @@ from Main.Utils import parse_json_from_response, get_rocade_few_shot_prompt, get
 
 CONFIG = {
     # --- Chemins ---
-    "input_directory": "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main\\Casie\\testing\\source",
+    "input_directory": "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main\\InputData",
     "output_directory": "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main\\ExtractedResults",
 
     # --- Phase 1 & 2 : Extraction et LLM ---
     "model_name": "gemini-3.1-flash-lite",
-    "prompt_type": "few_shot",             # "few_shot" ou "cot"
+    "prompt_type": "cot",             # "few_shot" ou "cot"
     "use_chunking": True,
     "use_rocade": True,
-    "test_limit": 10,                 # 0 pour tout traiter
+    "test_limit": 300,                 # 0 pour tout traiter
 
     # --- Phase 3 : Construction du Graphe ---
     "run_phase_3": True,              # Activer/Désactiver toute la phase 3
