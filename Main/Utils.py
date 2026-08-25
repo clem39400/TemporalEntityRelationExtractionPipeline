@@ -135,8 +135,8 @@ Output:
 """
 
 def get_cot_prompt(text: str, chunk_id: int) -> str:
-    return f"""You are an expert Cyber Threat Intelligence (CTI) analyst specializing in attack kill-chain reconstruction.
-Your task is to extract a chronology of events from the provided text using the ROCADE ontology schema.
+    return f"""You are an expert Cyber Threat Intelligence (CTI) analyst specializing in highly granular attack kill-chain reconstruction.
+Your task is to extract a comprehensive chronology of micro-events from the provided text using the ROCADE ontology schema.
 
 ### 1. ONTOLOGY DEFINITIONS
 Allowed Entity Types: Threat_Actor, Attack_Pattern, Malware, Tool, Vulnerability, Attacker_Infrastructure, Victim_Asset, Observable.
@@ -145,22 +145,43 @@ Allowed Relations:
 - Temporal: BEFORE, SIMULTANEOUS.
 
 ### 2. STRICT INSTRUCTIONS
-Before generating the JSON, you must explain your reasoning step-by-step. 
-1. Prefix all entity IDs with "C{chunk_id}_".
-2. Structure your response exactly as follows:
+1. DO NOT SUMMARIZE. You must extract every single intermediate step, tool, and asset mentioned.
+2. Prefix all entity IDs with "C{chunk_id}_".
+3. You must explain your reasoning step-by-step in a <thinking> block before outputting the <json> block.
+
+### 3. EXAMPLE OF EXPECTED GRANULARITY
+
+Input Text: "The threat actor distributed a malicious PDF. When opened, the PDF executed a JavaScript payload which downloaded the Trickbot malware. Trickbot then targeted the local credentials."
 
 <thinking>
-1. Entity Identification: List all valid entities found in the text.
-2. Temporal Markers: Identify the explicit or implicit words indicating time (e.g., "then", "subsequently", "during").
-3. Relation Deduction: Deduce the semantic and temporal relationships using ONLY the allowed relations.
+1. Entity Identification: I see "threat actor" (Threat_Actor), "malicious PDF" (Observable), "JavaScript payload" (Malware), "Trickbot" (Malware), and "local credentials" (Victim_Asset).
+2. Relation Deduction: 
+   - The actor USES the PDF.
+   - The PDF INDICATES the JavaScript payload.
+   - The JavaScript USES Trickbot.
+   - Trickbot TARGETS local credentials.
+3. Temporal Markers: "When opened" and "then" imply a strict sequence.
+   - PDF distribution BEFORE JavaScript execution.
+   - JavaScript execution BEFORE Trickbot download.
+   - Trickbot download BEFORE targeting credentials.
 </thinking>
 <json>
 {{
   "entities": [
-    // Your extracted entities here
+    {{"id": "C{chunk_id}_E1", "type": "Threat_Actor", "mention": "threat actor"}},
+    {{"id": "C{chunk_id}_E2", "type": "Observable", "mention": "malicious PDF"}},
+    {{"id": "C{chunk_id}_E3", "type": "Malware", "mention": "JavaScript payload"}},
+    {{"id": "C{chunk_id}_E4", "type": "Malware", "mention": "Trickbot"}},
+    {{"id": "C{chunk_id}_E5", "type": "Victim_Asset", "mention": "local credentials"}}
   ],
   "relations": [
-    // Your extracted relations here
+    {{"source": "C{chunk_id}_E1", "target": "C{chunk_id}_E2", "relation_type": "USES"}},
+    {{"source": "C{chunk_id}_E2", "target": "C{chunk_id}_E3", "relation_type": "INDICATES"}},
+    {{"source": "C{chunk_id}_E3", "target": "C{chunk_id}_E4", "relation_type": "USES"}},
+    {{"source": "C{chunk_id}_E4", "target": "C{chunk_id}_E5", "relation_type": "TARGETS"}},
+    {{"source": "C{chunk_id}_E2", "target": "C{chunk_id}_E3", "relation_type": "BEFORE"}},
+    {{"source": "C{chunk_id}_E3", "target": "C{chunk_id}_E4", "relation_type": "BEFORE"}},
+    {{"source": "C{chunk_id}_E4", "target": "C{chunk_id}_E5", "relation_type": "BEFORE"}}
   ]
 }}
 </json>

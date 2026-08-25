@@ -22,7 +22,7 @@ from Main.Utils import parse_json_from_response, get_rocade_few_shot_prompt, get
 CONFIG = {
     # --- Chemins ---
     "input_directory": "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main\\InputData",
-    "output_directory": "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main\\ExtractedResults",
+    "output_directory": "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main\\ExtractedResults2",
 
     # --- Phase 1 & 2 : Extraction et LLM ---
     "model_name": "gemini-3.1-flash-lite",
@@ -55,7 +55,10 @@ def run_full_pipeline(config: dict):
     if not api_key:
         raise ValueError("La variable GEMINI_API_KEY est introuvable.")
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel(config["model_name"])
+    model = genai.GenerativeModel(
+        config["model_name"],
+        generation_config=genai.GenerationConfig(temperature=0.1)
+    )
 
     # --- INITIALISATION DES OUTILS ---
     extractor = CTIDocumentExtractor(remove_non_ascii=True, hide_sensitive=True, margin_tolerance=0.08)
