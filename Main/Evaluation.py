@@ -138,7 +138,7 @@ if __name__ == "__main__":
     BASE_PATH = "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main"
 
     # 1. Chemin vers le Gold Standard manuel que nous venons de créer
-    GOLD_STANDARD_PATH = os.path.join(BASE_PATH, "DataToValidate", "Triplets-chunk-m-trends-2025.json")
+    GOLD_STANDARD_PATH = os.path.join(BASE_PATH, "DataToValidate", "Triplets China cyber espionage.json")
 
     # 2. Chemin vers les résultats générés par ton script Main.py (Phase 3)
     # Assure-toi que ce nom correspond bien au fichier que ta pipeline génère actuellement
