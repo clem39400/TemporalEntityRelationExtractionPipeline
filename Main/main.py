@@ -7,12 +7,9 @@ from dotenv import load_dotenv
 # --- IMPORTS DE TES BRIQUES ---
 from Main.CTIDocumentExtractor import CTIDocumentExtractor
 from Main.CTISemanticChunker import CTISemanticChunker
-
-# Nouveaux imports pour la Phase 3
 from Main.GraphReconcilier import reconcile_graph
 from Main.GraphCleaner import dynamic_cleaner
 from Main.VizualizeGraph import visualize_graph
-
 from Main.Utils import parse_json_from_response, get_rocade_few_shot_prompt, get_cot_prompt
 
 # ==========================================
@@ -105,7 +102,6 @@ def run_full_pipeline(config: dict):
 
         try:
             raw_response = model.generate_content(prompt).text
-            # Assure-toi d'avoir importé parse_json_from_response !
             parsed_data = parse_json_from_response(raw_response)
         except Exception as e:
             print(f"Erreur API/Parsing sur le chunk global {global_chunk_id} : {e}")
@@ -114,7 +110,7 @@ def run_full_pipeline(config: dict):
         results.append({
             "chunk_metadata": {
                 "source": chunk['source'],
-                "chunk_id": global_chunk_id  # On sauvegarde l'ID entier pour la Phase 3
+                "chunk_id": global_chunk_id
             },
             "hyperparameters": config,
             "extraction": parsed_data
@@ -122,49 +118,65 @@ def run_full_pipeline(config: dict):
 
         time.sleep(15) # Pause Anti-Rate Limit
 
-    # Sauvegarde des extractions locales
+    # Sauvegarde des extractions locales globales (Backup)
     output_file = os.path.join(config["output_directory"], f"results_{config['prompt_type']}_{config['model_name'].replace('.', '-')}.json")
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(results, f, indent=4, ensure_ascii=False)
-    print(f"\n[SUCCÈS] Phase 2 terminée. Résultats bruts dans : {output_file}")
+    print(f"\n[SUCCÈS] Phase 2 terminée. Résultats bruts globaux dans : {output_file}")
 
-    # --- PHASE 3 : RÉCONCILIATION, NETTOYAGE ET VISUALISATION ---
+    # --- PHASE 3 : CONSTRUCTION DES GRAPHES PAR DOCUMENT ---
     if config["run_phase_3"]:
         print(f"\n{'='*50}")
-        print("PHASE 3 : CONSTRUCTION DU GRAPHE DE CONNAISSANCES")
+        print("PHASE 3 : RÉCONCILIATION ET CONSTRUCTION PAR DOCUMENT")
         print(f"{'='*50}\n")
 
-        # Définition des chemins pour cette exécution spécifique
-        reconciled_path = os.path.join(config["output_directory"], f"Reconciled_{config['prompt_type']}.json")
-        cleaned_path = os.path.join(config["output_directory"], f"Cleaned_{config['prompt_type']}.json")
-        viz_path = os.path.join(config["output_directory"], f"Viz_{config['prompt_type']}.html")
+        # Grouper les résultats bruts par fichier source
+        results_by_source = {}
+        for res in results:
+            src = res["chunk_metadata"]["source"]
+            if src not in results_by_source:
+                results_by_source[src] = []
+            results_by_source[src].append(res)
 
-        # 3.1 Réconciliation
-        print("[*] 3.1 Lancement de la Réconciliation...")
-        reconcile_graph(
-            input_path=output_file,
-            output_path=reconciled_path,
-            similarity_threshold=config["reconciliation_sim_threshold"],
-            malware_threshold=config["reconciliation_malware_threshold"]
-        )
+        # Traiter chaque document indépendamment
+        for source_file, source_data in results_by_source.items():
+            # Créer un nom de fichier propre sans extension
+            safe_source_name = os.path.splitext(source_file)[0]
+            print(f"[*] Génération du graphe pour : {safe_source_name}")
 
-        # 3.2 Nettoyage
-        print("[*] 3.2 Lancement du Nettoyage dynamique...")
-        dynamic_cleaner(
-            input_path=reconciled_path,
-            output_path=cleaned_path,
-            max_connectivity=config["cleaner_max_connectivity"]
-        )
+            raw_source_path = os.path.join(config["output_directory"], f"raw_{safe_source_name}.json")
+            reconciled_path = os.path.join(config["output_directory"], f"Reconciled_{safe_source_name}.json")
+            cleaned_path = os.path.join(config["output_directory"], f"Cleaned_{safe_source_name}.json")
+            viz_path = os.path.join(config["output_directory"], f"Viz_{safe_source_name}.html")
 
-        # 3.3 Visualisation
-        print("[*] 3.3 Génération de la visualisation HTML...")
-        visualize_graph(
-            json_path=cleaned_path,
-            output_html=viz_path
-        )
+            # Sauvegarder un JSON brut temporaire pour ce document précis
+            with open(raw_source_path, 'w', encoding='utf-8') as f:
+                json.dump(source_data, f, indent=4, ensure_ascii=False)
 
-        print(f"\n[SUCCÈS TOTAL] Graphe final généré ici : {viz_path}")
+            # 3.1 Réconciliation
+            reconcile_graph(
+                input_path=raw_source_path,
+                output_path=reconciled_path,
+                similarity_threshold=config["reconciliation_sim_threshold"],
+                malware_threshold=config["reconciliation_malware_threshold"]
+            )
 
+            # 3.2 Nettoyage
+            dynamic_cleaner(
+                input_path=reconciled_path,
+                output_path=cleaned_path,
+                max_connectivity=config["cleaner_max_connectivity"]
+            )
+
+            # 3.3 Visualisation
+            visualize_graph(
+                json_path=cleaned_path,
+                output_html=viz_path
+            )
+
+            print(f"    -> Terminé : {reconciled_path}")
+
+        print(f"\n[SUCCÈS TOTAL] Tous les graphes documentaires ont été générés !")
 
 if __name__ == "__main__":
     run_full_pipeline(CONFIG)
