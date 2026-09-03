@@ -54,7 +54,11 @@ def run_full_pipeline(config: dict):
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel(
         config["model_name"],
-        generation_config=genai.GenerationConfig(temperature=0.1)
+        generation_config=genai.GenerationConfig(
+            temperature=0.0,  # Bloque toute créativité/variabilité aléatoire
+            top_k=1,          # Ne sélectionne systématiquement que le token le plus probable
+            top_p=0.0      # Restreint drastiquement l'espace d'échantillonnage
+        )
     )
 
     # --- INITIALISATION DES OUTILS ---

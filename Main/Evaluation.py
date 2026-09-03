@@ -151,6 +151,14 @@ if __name__ == "__main__":
         {
             "gold": os.path.join(BASE_PATH, "DataToValidate", "Triplets-spider.json"),
             "pred": os.path.join(BASE_PATH, "ExtractedResults2", "Reconciled_chunk-spider.json")
+        },
+        {
+            "gold": os.path.join(BASE_PATH, "DataToValidate", "Triplets China cyber espionage.json"),
+            "pred": os.path.join(BASE_PATH, "ExtractedResults2", "Reconciled_chunks China's Cyber Espionage.json")
+        },
+        {
+            "gold": os.path.join(BASE_PATH, "DataToValidate", "Triplets-chunk-m-trends-2025.json"),
+            "pred": os.path.join(BASE_PATH, "ExtractedResults2", "Reconciled_chunks-m-trends-2025.json")
         }
     ]
 
