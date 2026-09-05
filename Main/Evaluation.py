@@ -203,7 +203,7 @@ if __name__ == "__main__":
                 ]
 
                 print(f"\n\n{'#'*80}")
-                print(f"🚀 TEST : ROCADE={test_rocade} | CHUNKING={test_chunking} | PROMPT={test_prompt.upper()}")
+                print(f" TEST : ROCADE={test_rocade} | CHUNKING={test_chunking} | PROMPT={test_prompt.upper()}")
                 print(f"{'#'*80}")
 
                 evaluate_micro_average(
