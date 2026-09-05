@@ -2,12 +2,19 @@ import json
 import os
 from sentence_transformers import SentenceTransformer, util
 
-# Import de ton utilitaire TRAM
-from Main.TRAMUtils import TRAMUtils
+# ==========================================
+# 1. PARAMÈTRES GLOBAX D'ÉVALUATION
+# ==========================================
 
-def get_triples_from_graph_dict(graph_data, relation_filter=None):
+# Seuil de tolérance pour l'évaluation des synonymes (Soft Match)
+SIMILARITY_THRESHOLD = 0.50
+
+# ==========================================
+
+def get_triples_from_graph_dict(graph_data, relation_filter=None, is_prediction=False, evaluate_without_rocade=False):
     """
-    Extrait un set de triplets (Source, Relation, Cible) à partir d'un dictionnaire[cite: 30].
+    Extrait un set de triplets (Source, Relation, Cible) à partir d'un dictionnaire.
+    Gère dynamiquement l'ignorance des noms de relations si on teste l'impact "Sans ROCADE".
     """
     node_map = {node["id"]: node["labels"][0].lower().strip() for node in graph_data.get("nodes", [])}
     triples = set()
@@ -17,15 +24,23 @@ def get_triples_from_graph_dict(graph_data, relation_filter=None):
         tgt_label = node_map.get(edge.get("target"), "")
         rel_type = edge.get("relation_type", "").upper()
 
-        if relation_filter and rel_type != relation_filter.upper():
-            continue
+        if relation_filter:
+            if evaluate_without_rocade and is_prediction:
+                # En mode "Sans ROCADE", le LLM invente des noms temporels (ex: LEADS_TO).
+                # On ne peut donc pas filtrer la prédiction par "BEFORE". On garde toute la structure.
+                pass
+            elif rel_type != relation_filter.upper():
+                continue
+
+        # Si on est en mode "Sans ROCADE", on remplace le nom par un joker "*" (Structure seule)
+        final_rel = "*" if evaluate_without_rocade else rel_type
 
         if src_label and tgt_label:
-            triples.add((src_label, rel_type, tgt_label))
+            triples.add((src_label, final_rel, tgt_label))
 
     return triples
 
-def calculate_independent_metrics(gt_triples, pred_triples, model, similarity_threshold=0.80):
+def calculate_independent_metrics(gt_triples, pred_triples, model, similarity_threshold, evaluate_without_rocade=False):
     """
     Calcule les TP, FP, FN pour un seul graphe avec un Soft Match optimisé (tri par similarité).
     """
@@ -52,6 +67,7 @@ def calculate_independent_metrics(gt_triples, pred_triples, model, similarity_th
         p_tgt_emb = get_embedding(p_tgt)
 
         for g_idx, (g_src, g_rel, g_tgt) in enumerate(remaining_gt):
+            # Si evaluate_without_rocade est True, p_rel et g_rel valent "*", donc la condition est validée.
             if p_rel != g_rel:
                 continue
 
@@ -103,11 +119,13 @@ def print_micro_average_metrics(title, total_tp, total_fp, total_fn, threshold):
     print(f"Précision : {s_prec:.4f} | Rappel : {s_rec:.4f} | F1-Score : {s_f1:.4f}\n")
 
 
-def evaluate_micro_average(evaluation_pairs: list, similarity_threshold=0.80):
+def evaluate_micro_average(evaluation_pairs: list, similarity_threshold):
     """
     Évalue indépendamment chaque rapport puis calcule la moyenne (Micro-Average).
+    Vérifie automatiquement si 'Rocade_False' est présent dans le nom du fichier prédit
+    pour activer l'évaluation sans ROCADE.
     """
-    print("\n[*] Chargement du modèle de similarité sémantique (all-MiniLM-L6-v2)...")
+    print(f"\n[*] Chargement du modèle de similarité sémantique (all-MiniLM-L6-v2)...")
     model = SentenceTransformer('all-MiniLM-L6-v2')
 
     # Compteurs globaux
@@ -122,22 +140,29 @@ def evaluate_micro_average(evaluation_pairs: list, similarity_threshold=0.80):
             print(f"[!] Fichier manquant ignoré : {gold_path} ou {pred_path}")
             continue
 
+        # Détection automatique de ROCADE d'après le nom du fichier de prédiction
+        evaluate_without_rocade = "Rocade_False" in pred_path
+
         with open(gold_path, 'r', encoding='utf-8') as f:
             gt_data = json.load(f)
         with open(pred_path, 'r', encoding='utf-8') as f:
             pred_data = json.load(f)
 
-        # Évaluation Globale pour ce rapport
-        gt_all = get_triples_from_graph_dict(gt_data)
-        pred_all = get_triples_from_graph_dict(pred_data)
-        tp, fp, fn = calculate_independent_metrics(gt_all, pred_all, model, similarity_threshold)
+        # 1. Évaluation Globale pour ce rapport
+        gt_all = get_triples_from_graph_dict(gt_data, is_prediction=False, evaluate_without_rocade=evaluate_without_rocade)
+        pred_all = get_triples_from_graph_dict(pred_data, is_prediction=True, evaluate_without_rocade=evaluate_without_rocade)
+        tp, fp, fn = calculate_independent_metrics(gt_all, pred_all, model, similarity_threshold, evaluate_without_rocade=evaluate_without_rocade)
         global_tp += tp; global_fp += fp; global_fn += fn
 
-        # Évaluation Temporelle pour ce rapport
-        gt_temp = get_triples_from_graph_dict(gt_data, relation_filter="BEFORE")
-        pred_temp = get_triples_from_graph_dict(pred_data, relation_filter="BEFORE")
-        t_tp, t_fp, t_fn = calculate_independent_metrics(gt_temp, pred_temp, model, similarity_threshold)
+        # 2. Évaluation Temporelle pour ce rapport
+        gt_temp = get_triples_from_graph_dict(gt_data, relation_filter="BEFORE", is_prediction=False, evaluate_without_rocade=evaluate_without_rocade)
+        pred_temp = get_triples_from_graph_dict(pred_data, relation_filter="BEFORE", is_prediction=True, evaluate_without_rocade=evaluate_without_rocade)
+        t_tp, t_fp, t_fn = calculate_independent_metrics(gt_temp, pred_temp, model, similarity_threshold, evaluate_without_rocade=evaluate_without_rocade)
         temp_tp += t_tp; temp_fp += t_fp; temp_fn += t_fn
+
+    # Affichage du mode global de la série
+    mode_str = "SANS ROCADE (Évaluation Structurelle pure)" if "Rocade_False" in evaluation_pairs[0]["pred"] else "AVEC ROCADE (Évaluation Sémantique stricte)"
+    print(f"\n[*] Mode appliqué pour cette série : {mode_str}")
 
     # Affichage des résultats consolidés
     print_micro_average_metrics("1. ÉVALUATION GLOBALE (MICRO-AVERAGE)", global_tp, global_fp, global_fn, similarity_threshold)
@@ -145,24 +170,43 @@ def evaluate_micro_average(evaluation_pairs: list, similarity_threshold=0.80):
 
 
 if __name__ == "__main__":
+    import os
+
+    # Renseignez ici le chemin de base absolu de votre projet
     BASE_PATH = "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main"
 
-    EVALUATION_PAIRS = [
-        {
-            "gold": os.path.join(BASE_PATH, "DataToValidate", "Triplets-spider.json"),
-            "pred": os.path.join(BASE_PATH, "ExtractedResults2", "Reconciled_chunk-spider.json")
-        },
-        {
-            "gold": os.path.join(BASE_PATH, "DataToValidate", "Triplets China cyber espionage.json"),
-            "pred": os.path.join(BASE_PATH, "ExtractedResults2", "Reconciled_chunks China's Cyber Espionage.json")
-        },
-        {
-            "gold": os.path.join(BASE_PATH, "DataToValidate", "Triplets-chunk-m-trends-2025.json"),
-            "pred": os.path.join(BASE_PATH, "ExtractedResults2", "Reconciled_chunks-m-trends-2025.json")
-        }
-    ]
+    print("\n" + "="*80)
+    print("LANCEMENT DE LA CAMPAGNE D'ÉVALUATION COMPLÈTE (8 USE CASES)")
+    print("="*80)
 
-    evaluate_micro_average(
-        evaluation_pairs=EVALUATION_PAIRS,
-        similarity_threshold=0.5
-    )
+    # 3 boucles imbriquées pour générer automatiquement les 2x2x2 = 8 configurations
+    for test_rocade in [True, False]:
+        for test_chunking in [True, False]:
+            for test_prompt in ["cot", "few_shot"]:
+
+                # Construction automatique du suffixe exact du fichier
+                file_suffix = f"Rocade_{test_rocade}_Chunking_{test_chunking}_{test_prompt}.json"
+
+                EVALUATION_PAIRS = [
+                    {
+                        "gold": os.path.join(BASE_PATH, "DataToValidate", "Triplets-spider.json"),
+                        "pred": os.path.join(BASE_PATH, "ExtractedResults2", f"Reconciled_chunk-spider_{file_suffix}")
+                    },
+                    {
+                        "gold": os.path.join(BASE_PATH, "DataToValidate", "Triplets China cyber espionage.json"),
+                        "pred": os.path.join(BASE_PATH, "ExtractedResults2", f"Reconciled_chunks China's Cyber Espionage_{file_suffix}")
+                    },
+                    {
+                        "gold": os.path.join(BASE_PATH, "DataToValidate", "Triplets-chunk-m-trends-2025.json"),
+                        "pred": os.path.join(BASE_PATH, "ExtractedResults2", f"Reconciled_chunks-m-trends-2025_{file_suffix}")
+                    }
+                ]
+
+                print(f"\n\n{'#'*80}")
+                print(f"🚀 TEST : ROCADE={test_rocade} | CHUNKING={test_chunking} | PROMPT={test_prompt.upper()}")
+                print(f"{'#'*80}")
+
+                evaluate_micro_average(
+                    evaluation_pairs=EVALUATION_PAIRS,
+                    similarity_threshold=SIMILARITY_THRESHOLD
+                )

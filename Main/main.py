@@ -10,7 +10,13 @@ from Main.CTISemanticChunker import CTISemanticChunker
 from Main.GraphReconcilier import reconcile_graph
 from Main.GraphCleaner import dynamic_cleaner
 from Main.VizualizeGraph import visualize_graph
-from Main.Utils import parse_json_from_response, get_rocade_few_shot_prompt, get_cot_prompt
+from Main.Utils import (
+    parse_json_from_response,
+    get_rocade_few_shot_prompt,
+    get_rocade_cot_prompt,
+    get_no_rocade_few_shot_prompt,
+    get_no_rocade_cot_prompt
+)
 
 # ==========================================
 # 1. HYPERPARAMÈTRES (CONFIGURATION CENTRALE)
@@ -24,12 +30,12 @@ CONFIG = {
     # --- Phase 1 & 2 : Extraction et LLM ---
     "model_name": "gemini-3.1-flash-lite",
     "prompt_type": "cot",             # "few_shot" ou "cot"
-    "use_chunking": True,
-    "use_rocade": True,
-    "test_limit": 300,                 # 0 pour tout traiter
+    "use_chunking": False,                  # True ou False (pour SubQ2)
+    "use_rocade": False,                    # True ou False (pour SubQ3)
+    "test_limit": 0,                     # 0 pour tout traiter
 
     # --- Phase 3 : Construction du Graphe ---
-    "run_phase_3": True,              # Activer/Désactiver toute la phase 3
+    "run_phase_3": True,
     "reconciliation_sim_threshold": 0.85,
     "reconciliation_malware_threshold": 0.95,
     "cleaner_max_connectivity": 15
@@ -41,7 +47,8 @@ CONFIG = {
 
 def run_full_pipeline(config: dict):
     print(f"\n{'='*50}")
-    print(f"DÉMARRAGE DE LA PIPELINE (Modèle: {config['model_name']} | Prompt: {config['prompt_type']})")
+    print(f"DÉMARRAGE DE LA PIPELINE")
+    print(f"Modèle: {config['model_name']} | Prompt: {config['prompt_type'].upper()} | Chunking: {config['use_chunking']} | ROCADE: {config['use_rocade']}")
     print(f"{'='*50}\n")
 
     os.makedirs(config["output_directory"], exist_ok=True)
@@ -55,9 +62,9 @@ def run_full_pipeline(config: dict):
     model = genai.GenerativeModel(
         config["model_name"],
         generation_config=genai.GenerationConfig(
-            temperature=0.0,  # Bloque toute créativité/variabilité aléatoire
-            top_k=1,          # Ne sélectionne systématiquement que le token le plus probable
-            top_p=0.0      # Restreint drastiquement l'espace d'échantillonnage
+            temperature=0.0,
+            top_k=1,
+            top_p=0.0
         )
     )
 
@@ -97,12 +104,18 @@ def run_full_pipeline(config: dict):
 
         print(f"\nAnalyse {global_chunk_id+1}/{len(chunks_to_process)} (Source: {chunk['source']} | ID: {chunk['chunk_id']})...")
 
+        # ROUTAGE DYNAMIQUE DES PROMPTS SELON LES CONFIGS
         prompt = ""
         if config["use_rocade"]:
             if config["prompt_type"].lower() == "cot":
-                prompt = get_cot_prompt(chunk['text'], global_chunk_id)
-            elif config["prompt_type"].lower() == "few_shot":
+                prompt = get_rocade_cot_prompt(chunk['text'], global_chunk_id)
+            else:
                 prompt = get_rocade_few_shot_prompt(chunk['text'], global_chunk_id)
+        else:
+            if config["prompt_type"].lower() == "cot":
+                prompt = get_no_rocade_cot_prompt(chunk['text'], global_chunk_id)
+            else:
+                prompt = get_no_rocade_few_shot_prompt(chunk['text'], global_chunk_id)
 
         try:
             raw_response = model.generate_content(prompt).text
@@ -122,11 +135,12 @@ def run_full_pipeline(config: dict):
 
         time.sleep(15) # Pause Anti-Rate Limit
 
-    # Sauvegarde des extractions locales globales (Backup)
-    output_file = os.path.join(config["output_directory"], f"results_{config['prompt_type']}_{config['model_name'].replace('.', '-')}.json")
+    # Sauvegarde des extractions locales
+    file_suffix = f"Rocade_{config['use_rocade']}_Chunking_{config['use_chunking']}_{config['prompt_type']}"
+    output_file = os.path.join(config["output_directory"], f"results_{file_suffix}.json")
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump(results, f, indent=4, ensure_ascii=False)
-    print(f"\n[SUCCÈS] Phase 2 terminée. Résultats bruts globaux dans : {output_file}")
+    print(f"\n[SUCCÈS] Phase 2 terminée. Résultats globaux dans : {output_file}")
 
     # --- PHASE 3 : CONSTRUCTION DES GRAPHES PAR DOCUMENT ---
     if config["run_phase_3"]:
@@ -134,7 +148,6 @@ def run_full_pipeline(config: dict):
         print("PHASE 3 : RÉCONCILIATION ET CONSTRUCTION PAR DOCUMENT")
         print(f"{'='*50}\n")
 
-        # Grouper les résultats bruts par fichier source
         results_by_source = {}
         for res in results:
             src = res["chunk_metadata"]["source"]
@@ -142,22 +155,22 @@ def run_full_pipeline(config: dict):
                 results_by_source[src] = []
             results_by_source[src].append(res)
 
-        # Traiter chaque document indépendamment
+        # On récupère le suffixe de la configuration actuelle
+        file_suffix = f"Rocade_{config['use_rocade']}_Chunking_{config['use_chunking']}_{config['prompt_type']}"
+
         for source_file, source_data in results_by_source.items():
-            # Créer un nom de fichier propre sans extension
             safe_source_name = os.path.splitext(source_file)[0]
             print(f"[*] Génération du graphe pour : {safe_source_name}")
 
-            raw_source_path = os.path.join(config["output_directory"], f"raw_{safe_source_name}.json")
-            reconciled_path = os.path.join(config["output_directory"], f"Reconciled_{safe_source_name}.json")
-            cleaned_path = os.path.join(config["output_directory"], f"Cleaned_{safe_source_name}.json")
-            viz_path = os.path.join(config["output_directory"], f"Viz_{safe_source_name}.html")
+            # On ajoute le suffixe à TOUS les fichiers générés
+            raw_source_path = os.path.join(config["output_directory"], f"raw_{safe_source_name}_{file_suffix}.json")
+            reconciled_path = os.path.join(config["output_directory"], f"Reconciled_{safe_source_name}_{file_suffix}.json")
+            cleaned_path = os.path.join(config["output_directory"], f"Cleaned_{safe_source_name}_{file_suffix}.json")
+            viz_path = os.path.join(config["output_directory"], f"Viz_{safe_source_name}_{file_suffix}.html")
 
-            # Sauvegarder un JSON brut temporaire pour ce document précis
             with open(raw_source_path, 'w', encoding='utf-8') as f:
                 json.dump(source_data, f, indent=4, ensure_ascii=False)
 
-            # 3.1 Réconciliation
             reconcile_graph(
                 input_path=raw_source_path,
                 output_path=reconciled_path,
@@ -165,14 +178,12 @@ def run_full_pipeline(config: dict):
                 malware_threshold=config["reconciliation_malware_threshold"]
             )
 
-            # 3.2 Nettoyage
             dynamic_cleaner(
                 input_path=reconciled_path,
                 output_path=cleaned_path,
                 max_connectivity=config["cleaner_max_connectivity"]
             )
 
-            # 3.3 Visualisation
             visualize_graph(
                 json_path=cleaned_path,
                 output_html=viz_path
