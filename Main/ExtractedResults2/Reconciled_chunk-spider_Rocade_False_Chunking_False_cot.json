@@ -1,0 +1,160 @@
+{
+    "metadata": {
+        "total_nodes": 12,
+        "total_relations": 11
+    },
+    "nodes": [
+        {
+            "id": "G_E1",
+            "type": "Threat_Actor",
+            "labels": [
+                "ALPHV Blackcat affiliates"
+            ]
+        },
+        {
+            "id": "G_E2",
+            "type": "Social_Engineering_Technique",
+            "labels": [
+                "phone calls or SMS messages"
+            ]
+        },
+        {
+            "id": "G_E3",
+            "type": "Credential",
+            "labels": [
+                "login credentials and session cookies"
+            ]
+        },
+        {
+            "id": "G_E4",
+            "type": "Tool",
+            "labels": [
+                "Evilginx2"
+            ]
+        },
+        {
+            "id": "G_E5",
+            "type": "Network_Access",
+            "labels": [
+                "initial access"
+            ]
+        },
+        {
+            "id": "G_E6",
+            "type": "Tool",
+            "labels": [
+                "AnyDesk, Mega sync, and Splashtop"
+            ]
+        },
+        {
+            "id": "G_E7",
+            "type": "Tool",
+            "labels": [
+                "Plink and Ngrok"
+            ]
+        },
+        {
+            "id": "G_E8",
+            "type": "Malware",
+            "labels": [
+                "Brute Ratel C4 and Cobalt Strike"
+            ]
+        },
+        {
+            "id": "G_E9",
+            "type": "Tool",
+            "labels": [
+                "Metasploit"
+            ]
+        },
+        {
+            "id": "G_E10",
+            "type": "Malware",
+            "labels": [
+                "POORTRY and STONESTOP"
+            ]
+        },
+        {
+            "id": "G_E11",
+            "type": "Malware",
+            "labels": [
+                "ALPHV Blackcat Ransomware 2.0 Sphynx"
+            ]
+        },
+        {
+            "id": "G_E12",
+            "type": "Exfiltration_Platform",
+            "labels": [
+                "Mega.nz or Dropbox"
+            ]
+        }
+    ],
+    "edges": [
+        {
+            "source": "G_E1",
+            "target": "G_E2",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E2",
+            "target": "G_E4",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E4",
+            "target": "G_E3",
+            "relation_type": "OBTAINS",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E3",
+            "target": "G_E5",
+            "relation_type": "ENABLES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E5",
+            "target": "G_E6",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E6",
+            "target": "G_E7",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E7",
+            "target": "G_E8",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E8",
+            "target": "G_E9",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E9",
+            "target": "G_E10",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E10",
+            "target": "G_E12",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E12",
+            "target": "G_E11",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_0"
+        }
+    ]
+}

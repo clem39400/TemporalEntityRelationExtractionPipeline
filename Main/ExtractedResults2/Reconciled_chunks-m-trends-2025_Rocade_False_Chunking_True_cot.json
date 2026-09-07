@@ -1,0 +1,234 @@
+{
+    "metadata": {
+        "total_nodes": 14,
+        "total_relations": 21
+    },
+    "nodes": [
+        {
+            "id": "G_E1",
+            "type": "Threat_Actor",
+            "labels": [
+                "UNC5267"
+            ]
+        },
+        {
+            "id": "G_E2",
+            "type": "Identity_Asset",
+            "labels": [
+                "stolen identities and identities that appear to be wholly fabricated"
+            ]
+        },
+        {
+            "id": "G_E3",
+            "type": "Tool",
+            "labels": [
+                "Astrill VPN"
+            ]
+        },
+        {
+            "id": "G_E4",
+            "type": "Support_Entity",
+            "labels": [
+                "in-country facilitators"
+            ]
+        },
+        {
+            "id": "G_E5",
+            "type": "Infrastructure_Asset",
+            "labels": [
+                "laptop farms"
+            ]
+        },
+        {
+            "id": "G_E6",
+            "type": "Victim_Asset",
+            "labels": [
+                "corporate laptops"
+            ]
+        },
+        {
+            "id": "G_E7",
+            "type": "Threat_Actor",
+            "labels": [
+                "UNC2428"
+            ]
+        },
+        {
+            "id": "G_E8",
+            "type": "Campaign",
+            "labels": [
+                "social engineering campaign"
+            ]
+        },
+        {
+            "id": "G_E9",
+            "type": "Deception_Technique",
+            "labels": [
+                "posing as a recruitment opportunity from Israeli defense contractor, Rafael"
+            ]
+        },
+        {
+            "id": "G_E10",
+            "type": "Infrastructure",
+            "labels": [
+                "site purporting to be part of Rafael's web presence"
+            ]
+        },
+        {
+            "id": "G_E11",
+            "type": "Malware_Installer",
+            "labels": [
+                "RafaelConnect.exe"
+            ]
+        },
+        {
+            "id": "G_E12",
+            "type": "Malware",
+            "labels": [
+                "LONEFLEET"
+            ]
+        },
+        {
+            "id": "G_E13",
+            "type": "Victim_Asset",
+            "labels": [
+                "personal information"
+            ]
+        },
+        {
+            "id": "G_E14",
+            "type": "Malware",
+            "labels": [
+                "MURKYTOUR"
+            ]
+        }
+    ],
+    "edges": [
+        {
+            "source": "G_E1",
+            "target": "G_E2",
+            "relation_type": "USES",
+            "provenance": "chunk_5"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E3",
+            "relation_type": "USES",
+            "provenance": "chunk_5"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E4",
+            "relation_type": "USES",
+            "provenance": "chunk_5"
+        },
+        {
+            "source": "G_E4",
+            "target": "G_E5",
+            "relation_type": "OPERATES",
+            "provenance": "chunk_5"
+        },
+        {
+            "source": "G_E5",
+            "target": "G_E6",
+            "relation_type": "HOSTS",
+            "provenance": "chunk_5"
+        },
+        {
+            "source": "G_E2",
+            "target": "G_E3",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_5"
+        },
+        {
+            "source": "G_E3",
+            "target": "G_E4",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_5"
+        },
+        {
+            "source": "G_E4",
+            "target": "G_E5",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_5"
+        },
+        {
+            "source": "G_E5",
+            "target": "G_E6",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_5"
+        },
+        {
+            "source": "G_E7",
+            "target": "G_E8",
+            "relation_type": "CONDUCTS",
+            "provenance": "chunk_6"
+        },
+        {
+            "source": "G_E8",
+            "target": "G_E9",
+            "relation_type": "USES",
+            "provenance": "chunk_6"
+        },
+        {
+            "source": "G_E9",
+            "target": "G_E10",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_6"
+        },
+        {
+            "source": "G_E10",
+            "target": "G_E11",
+            "relation_type": "HOSTS",
+            "provenance": "chunk_6"
+        },
+        {
+            "source": "G_E11",
+            "target": "G_E12",
+            "relation_type": "IS_A",
+            "provenance": "chunk_6"
+        },
+        {
+            "source": "G_E12",
+            "target": "G_E13",
+            "relation_type": "COLLECTS",
+            "provenance": "chunk_6"
+        },
+        {
+            "source": "G_E13",
+            "target": "G_E14",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_6"
+        },
+        {
+            "source": "G_E12",
+            "target": "G_E14",
+            "relation_type": "LAUNCHES",
+            "provenance": "chunk_6"
+        },
+        {
+            "source": "G_E8",
+            "target": "G_E10",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_6"
+        },
+        {
+            "source": "G_E10",
+            "target": "G_E11",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_6"
+        },
+        {
+            "source": "G_E11",
+            "target": "G_E12",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_6"
+        },
+        {
+            "source": "G_E12",
+            "target": "G_E13",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_6"
+        }
+    ]
+}

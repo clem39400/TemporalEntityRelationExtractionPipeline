@@ -1,0 +1,119 @@
+{
+    "metadata": {
+        "total_nodes": 7,
+        "total_relations": 10
+    },
+    "nodes": [
+        {
+            "id": "G_E1",
+            "type": "Threat_Actor",
+            "labels": [
+                "UNC2428"
+            ]
+        },
+        {
+            "id": "G_E2",
+            "type": "Attack_Pattern",
+            "labels": [
+                "social engineering campaign"
+            ]
+        },
+        {
+            "id": "G_E3",
+            "type": "Attacker_Infrastructure",
+            "labels": [
+                "site purporting to be part of Rafael's web presence"
+            ]
+        },
+        {
+            "id": "G_E4",
+            "type": "Tool",
+            "labels": [
+                "RafaelConnect.exe"
+            ]
+        },
+        {
+            "id": "G_E5",
+            "type": "Malware",
+            "labels": [
+                "LONEFLEET"
+            ]
+        },
+        {
+            "id": "G_E6",
+            "type": "Malware",
+            "labels": [
+                "MURKYTOUR"
+            ]
+        },
+        {
+            "id": "G_E7",
+            "type": "Victim_Asset",
+            "labels": [
+                "personal information"
+            ]
+        }
+    ],
+    "edges": [
+        {
+            "source": "G_E1",
+            "target": "G_E2",
+            "relation_type": "USES",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E2",
+            "target": "G_E3",
+            "relation_type": "INDICATES",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E3",
+            "target": "G_E4",
+            "relation_type": "INDICATES",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E4",
+            "target": "G_E5",
+            "relation_type": "INDICATES",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E5",
+            "target": "G_E7",
+            "relation_type": "TARGETS",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E5",
+            "target": "G_E6",
+            "relation_type": "INDICATES",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E2",
+            "target": "G_E3",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E3",
+            "target": "G_E4",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E4",
+            "target": "G_E5",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E5",
+            "target": "G_E6",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_2"
+        }
+    ]
+}

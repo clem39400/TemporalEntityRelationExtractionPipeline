@@ -1,0 +1,161 @@
+{
+    "metadata": {
+        "total_nodes": 12,
+        "total_relations": 11
+    },
+    "nodes": [
+        {
+            "id": "G_E1",
+            "type": "Threat_Actor",
+            "labels": [
+                "APT1"
+            ]
+        },
+        {
+            "id": "G_E2",
+            "type": "Attack_Vector",
+            "labels": [
+                "spear phishing"
+            ]
+        },
+        {
+            "id": "G_E3",
+            "type": "Malware",
+            "labels": [
+                "Internal_Discussion_Press_Release_In_Next_Week8.zip"
+            ]
+        },
+        {
+            "id": "G_E4",
+            "type": "Malware",
+            "labels": [
+                "WEBC2-TABLE"
+            ]
+        },
+        {
+            "id": "G_E5",
+            "type": "Tool",
+            "labels": [
+                "psexec"
+            ]
+        },
+        {
+            "id": "G_E6",
+            "type": "Tool",
+            "labels": [
+                "at.exe"
+            ]
+        },
+        {
+            "id": "G_E7",
+            "type": "Tool",
+            "labels": [
+                "RAR"
+            ]
+        },
+        {
+            "id": "G_E8",
+            "type": "Protocol",
+            "labels": [
+                "File Transfer Protocol"
+            ]
+        },
+        {
+            "id": "G_E9",
+            "type": "Tool",
+            "labels": [
+                "GETMAIL"
+            ]
+        },
+        {
+            "id": "G_E10",
+            "type": "Tool",
+            "labels": [
+                "MAPIGET"
+            ]
+        },
+        {
+            "id": "G_E11",
+            "type": "Infrastructure",
+            "labels": [
+                "hop points"
+            ]
+        },
+        {
+            "id": "G_E12",
+            "type": "Software",
+            "labels": [
+                "Microsoft Exchange Server",
+                "Microsoft Outlook"
+            ]
+        }
+    ],
+    "edges": [
+        {
+            "source": "G_E1",
+            "target": "G_E2",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E3",
+            "target": "G_E4",
+            "relation_type": "INSTALLS",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E5",
+            "relation_type": "EXECUTES_COMMANDS_VIA",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E6",
+            "relation_type": "EXECUTES_COMMANDS_VIA",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E7",
+            "relation_type": "COMPRESSES_DATA_WITH",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E8",
+            "relation_type": "EXFILTRATES_VIA",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E9",
+            "relation_type": "STEALS_EMAIL_WITH",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E10",
+            "relation_type": "STEALS_EMAIL_WITH",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E9",
+            "target": "G_E12",
+            "relation_type": "TARGETS",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E10",
+            "target": "G_E12",
+            "relation_type": "TARGETS",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E11",
+            "relation_type": "REDIRECTS_TRAFFIC_THROUGH",
+            "provenance": "chunk_1"
+        }
+    ]
+}

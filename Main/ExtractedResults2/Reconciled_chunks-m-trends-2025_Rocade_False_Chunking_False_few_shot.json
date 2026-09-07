@@ -1,0 +1,121 @@
+{
+    "metadata": {
+        "total_nodes": 9,
+        "total_relations": 8
+    },
+    "nodes": [
+        {
+            "id": "G_E1",
+            "type": "Threat_Actor",
+            "labels": [
+                "UNC5267"
+            ]
+        },
+        {
+            "id": "G_E2",
+            "type": "Threat_Actor",
+            "labels": [
+                "DPRK IT workers"
+            ]
+        },
+        {
+            "id": "G_E3",
+            "type": "Software",
+            "labels": [
+                "Astrill VPN"
+            ]
+        },
+        {
+            "id": "G_E4",
+            "type": "Infrastructure",
+            "labels": [
+                "laptop farms"
+            ]
+        },
+        {
+            "id": "G_E5",
+            "type": "Threat_Actor",
+            "labels": [
+                "UNC2428"
+            ]
+        },
+        {
+            "id": "G_E6",
+            "type": "Malware",
+            "labels": [
+                "MURKYTOUR"
+            ]
+        },
+        {
+            "id": "G_E7",
+            "type": "Malware",
+            "labels": [
+                "LONEFLEET"
+            ]
+        },
+        {
+            "id": "G_E8",
+            "type": "File",
+            "labels": [
+                "RafaelConnect.exe"
+            ]
+        },
+        {
+            "id": "G_E9",
+            "type": "Organization",
+            "labels": [
+                "Rafael"
+            ]
+        }
+    ],
+    "edges": [
+        {
+            "source": "G_E1",
+            "target": "G_E2",
+            "relation_type": "COMPRISES",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E2",
+            "target": "G_E3",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E2",
+            "target": "G_E4",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E5",
+            "target": "G_E6",
+            "relation_type": "DISTRIBUTES",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E5",
+            "target": "G_E9",
+            "relation_type": "IMPERSONATES",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E8",
+            "target": "G_E7",
+            "relation_type": "IS_A",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E7",
+            "target": "G_E6",
+            "relation_type": "LAUNCHES",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E5",
+            "target": "G_E8",
+            "relation_type": "DEPLOYS",
+            "provenance": "chunk_2"
+        }
+    ]
+}

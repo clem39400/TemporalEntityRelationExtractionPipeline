@@ -29,9 +29,9 @@ CONFIG = {
 
     # --- Phase 1 & 2 : Extraction et LLM ---
     "model_name": "gemini-3.1-flash-lite",
-    "prompt_type": "cot",             # "few_shot" ou "cot"
+    "prompt_type": "few_shot",             # "few_shot" ou "cot"
     "use_chunking": False,                  # True ou False (pour SubQ2)
-    "use_rocade": False,                    # True ou False (pour SubQ3)
+    "use_rocade": True,                    # True ou False (pour SubQ3)
     "test_limit": 0,                     # 0 pour tout traiter
 
     # --- Phase 3 : Construction du Graphe ---

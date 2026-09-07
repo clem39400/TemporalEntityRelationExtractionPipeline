@@ -1,0 +1,435 @@
+{
+    "metadata": {
+        "total_nodes": 35,
+        "total_relations": 30
+    },
+    "nodes": [
+        {
+            "id": "G_E1",
+            "type": "Threat_Actor_Group",
+            "labels": [
+                "ALPHV Blackcat"
+            ]
+        },
+        {
+            "id": "G_E2",
+            "type": "Threat_Actor_Role",
+            "labels": [
+                "affiliates"
+            ]
+        },
+        {
+            "id": "G_E3",
+            "type": "Software",
+            "labels": [
+                "ALPHV Blackcat Ransomware 2.0 Sphynx"
+            ]
+        },
+        {
+            "id": "G_E4",
+            "type": "Target_Sector",
+            "labels": [
+                "healthcare sector"
+            ]
+        },
+        {
+            "id": "G_E5",
+            "type": "Target_Sector",
+            "labels": [
+                "hospitals"
+            ]
+        },
+        {
+            "id": "G_E6",
+            "type": "Software",
+            "labels": [
+                "AnyDesk"
+            ]
+        },
+        {
+            "id": "G_E7",
+            "type": "Software",
+            "labels": [
+                "Mega sync"
+            ]
+        },
+        {
+            "id": "G_E8",
+            "type": "Software",
+            "labels": [
+                "Splashtop"
+            ]
+        },
+        {
+            "id": "G_E9",
+            "type": "Software",
+            "labels": [
+                "Plink"
+            ]
+        },
+        {
+            "id": "G_E10",
+            "type": "Software",
+            "labels": [
+                "Ngrok"
+            ]
+        },
+        {
+            "id": "G_E11",
+            "type": "Software",
+            "labels": [
+                "Brute Ratel C4"
+            ]
+        },
+        {
+            "id": "G_E12",
+            "type": "Software",
+            "labels": [
+                "Cobalt Strike"
+            ]
+        },
+        {
+            "id": "G_E13",
+            "type": "Software",
+            "labels": [
+                "Evilginx2"
+            ]
+        },
+        {
+            "id": "G_E14",
+            "type": "Software",
+            "labels": [
+                "Metasploit"
+            ]
+        },
+        {
+            "id": "G_E15",
+            "type": "Credential_Type",
+            "labels": [
+                "multifactor authentication (MFA) credentials"
+            ]
+        },
+        {
+            "id": "G_E16",
+            "type": "Credential_Type",
+            "labels": [
+                "login credentials"
+            ]
+        },
+        {
+            "id": "G_E17",
+            "type": "Credential_Type",
+            "labels": [
+                "session cookies"
+            ]
+        },
+        {
+            "id": "G_E18",
+            "type": "Threat_Actor",
+            "labels": [
+                "actors"
+            ]
+        },
+        {
+            "id": "G_E19",
+            "type": "Credential_Source",
+            "labels": [
+                "domain controller"
+            ]
+        },
+        {
+            "id": "G_E20",
+            "type": "Credential_Source",
+            "labels": [
+                "local network"
+            ]
+        },
+        {
+            "id": "G_E21",
+            "type": "Credential_Source",
+            "labels": [
+                "deleted backup servers"
+            ]
+        },
+        {
+            "id": "G_E22",
+            "type": "Server",
+            "labels": [
+                "exchange server"
+            ]
+        },
+        {
+            "id": "G_E23",
+            "type": "Exfiltration_Service",
+            "labels": [
+                "Mega.nz"
+            ]
+        },
+        {
+            "id": "G_E24",
+            "type": "Exfiltration_Service",
+            "labels": [
+                "Dropbox"
+            ]
+        },
+        {
+            "id": "G_E25",
+            "type": "Malware",
+            "labels": [
+                "ransomware"
+            ]
+        },
+        {
+            "id": "G_E26",
+            "type": "Malware",
+            "labels": [
+                "POORTRY"
+            ]
+        },
+        {
+            "id": "G_E27",
+            "type": "Malware",
+            "labels": [
+                "STONESTOP"
+            ]
+        },
+        {
+            "id": "G_E28",
+            "type": "Communication_Channel",
+            "labels": [
+                "TOR"
+            ]
+        },
+        {
+            "id": "G_E29",
+            "type": "Malware",
+            "labels": [
+                "ALPHV Blackcat encryptor"
+            ]
+        },
+        {
+            "id": "G_E30",
+            "type": "Malicious_Tool",
+            "labels": [
+                "363.sys"
+            ]
+        },
+        {
+            "id": "G_E31",
+            "type": "Malicious_Tool",
+            "labels": [
+                "LMtool.exe"
+            ]
+        },
+        {
+            "id": "G_E32",
+            "type": "Malicious_Tool",
+            "labels": [
+                "first.exe"
+            ]
+        },
+        {
+            "id": "G_E33",
+            "type": "C2_Server",
+            "labels": [
+                "resources.docusong[. ]com"
+            ]
+        },
+        {
+            "id": "G_E34",
+            "type": "C2_Server",
+            "labels": [
+                "Fisa99.screenconnect[. ]com"
+            ]
+        },
+        {
+            "id": "G_E35",
+            "type": "C2_Server",
+            "labels": [
+                "[REDACTED_IP]"
+            ]
+        }
+    ],
+    "edges": [
+        {
+            "source": "G_E1",
+            "target": "G_E2",
+            "relation_type": "MANAGES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E3",
+            "relation_type": "DEVELOPS",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E2",
+            "target": "G_E5",
+            "relation_type": "TARGETS",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E2",
+            "target": "G_E6",
+            "relation_type": "DEPLOYS",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E2",
+            "target": "G_E7",
+            "relation_type": "DEPLOYS",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E2",
+            "target": "G_E8",
+            "relation_type": "DEPLOYS",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E2",
+            "target": "G_E9",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E2",
+            "target": "G_E10",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E2",
+            "target": "G_E11",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E2",
+            "target": "G_E12",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E2",
+            "target": "G_E13",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E2",
+            "target": "G_E14",
+            "relation_type": "EMPLOYS_FOR_EVASION",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E13",
+            "target": "G_E15",
+            "relation_type": "OBTAINS",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E13",
+            "target": "G_E16",
+            "relation_type": "OBTAINS",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E13",
+            "target": "G_E17",
+            "relation_type": "OBTAINS",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E18",
+            "target": "G_E19",
+            "relation_type": "OBTAINS_PASSWORDS_FROM",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E18",
+            "target": "G_E20",
+            "relation_type": "OBTAINS_PASSWORDS_FROM",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E18",
+            "target": "G_E21",
+            "relation_type": "OBTAINS_PASSWORDS_FROM",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E18",
+            "target": "G_E14",
+            "relation_type": "EMPLOYS",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E18",
+            "target": "G_E22",
+            "relation_type": "CLEARS_LOGS_ON",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E18",
+            "target": "G_E23",
+            "relation_type": "USES_FOR_EXFILTRATION",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E18",
+            "target": "G_E24",
+            "relation_type": "USES_FOR_EXFILTRATION",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E18",
+            "target": "G_E25",
+            "relation_type": "DEPLOYS",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E18",
+            "target": "G_E26",
+            "relation_type": "USES",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E18",
+            "target": "G_E27",
+            "relation_type": "USES",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E18",
+            "target": "G_E28",
+            "relation_type": "COMMUNICATES_VIA",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E18",
+            "target": "G_E29",
+            "relation_type": "OPERATES",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E18",
+            "target": "G_E33",
+            "relation_type": "CONNECTS_TO",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E18",
+            "target": "G_E34",
+            "relation_type": "CONNECTS_TO",
+            "provenance": "chunk_1"
+        },
+        {
+            "source": "G_E18",
+            "target": "G_E35",
+            "relation_type": "CONNECTS_TO",
+            "provenance": "chunk_1"
+        }
+    ]
+}

@@ -1,0 +1,277 @@
+{
+    "metadata": {
+        "total_nodes": 20,
+        "total_relations": 21
+    },
+    "nodes": [
+        {
+            "id": "G_E1",
+            "type": "Threat_Actor",
+            "labels": [
+                "APT1"
+            ]
+        },
+        {
+            "id": "G_E2",
+            "type": "Attack_Vector",
+            "labels": [
+                "spear phishing"
+            ]
+        },
+        {
+            "id": "G_E3",
+            "type": "Malicious_Artifact",
+            "labels": [
+                "Internal_Discussion_Press_Release_In_Next_Week8.zip"
+            ]
+        },
+        {
+            "id": "G_E4",
+            "type": "Malware",
+            "labels": [
+                "malicious executable"
+            ]
+        },
+        {
+            "id": "G_E5",
+            "type": "Backdoor",
+            "labels": [
+                "WEBC2-TABLE"
+            ]
+        },
+        {
+            "id": "G_E6",
+            "type": "Asset",
+            "labels": [
+                "legitimate credentials"
+            ]
+        },
+        {
+            "id": "G_E7",
+            "type": "Network_Resource",
+            "labels": [
+                "shared resources"
+            ]
+        },
+        {
+            "id": "G_E8",
+            "type": "Threat_Actor",
+            "labels": [
+                "APT intruder"
+            ]
+        },
+        {
+            "id": "G_E9",
+            "type": "Credential",
+            "labels": [
+                "legitimate credentials"
+            ]
+        },
+        {
+            "id": "G_E10",
+            "type": "Software",
+            "labels": [
+                "psexec"
+            ]
+        },
+        {
+            "id": "G_E11",
+            "type": "Software",
+            "labels": [
+                "at.exe"
+            ]
+        },
+        {
+            "id": "G_E12",
+            "type": "Malware",
+            "labels": [
+                "backdoors"
+            ]
+        },
+        {
+            "id": "G_E13",
+            "type": "Software",
+            "labels": [
+                "RAR"
+            ]
+        },
+        {
+            "id": "G_E14",
+            "type": "Protocol",
+            "labels": [
+                "File Transfer Protocol (FTP)"
+            ]
+        },
+        {
+            "id": "G_E15",
+            "type": "Software",
+            "labels": [
+                "email-stealing utilities"
+            ]
+        },
+        {
+            "id": "G_E16",
+            "type": "Malware",
+            "labels": [
+                "GETMAIL"
+            ]
+        },
+        {
+            "id": "G_E17",
+            "type": "Malware",
+            "labels": [
+                "MAPIGET"
+            ]
+        },
+        {
+            "id": "G_E18",
+            "type": "Software",
+            "labels": [
+                "Microsoft Outlook",
+                "Microsoft Exchange Server"
+            ]
+        },
+        {
+            "id": "G_E19",
+            "type": "Infrastructure",
+            "labels": [
+                "hop points"
+            ]
+        },
+        {
+            "id": "G_E20",
+            "type": "Location",
+            "labels": [
+                "Shanghai"
+            ]
+        }
+    ],
+    "edges": [
+        {
+            "source": "G_E1",
+            "target": "G_E2",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E2",
+            "target": "G_E3",
+            "relation_type": "DELIVERS",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E3",
+            "target": "G_E4",
+            "relation_type": "CONTAINS",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E4",
+            "target": "G_E5",
+            "relation_type": "INSTALLS",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E6",
+            "relation_type": "ACQUIRES",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E7",
+            "relation_type": "ACCESSES",
+            "provenance": "chunk_2"
+        },
+        {
+            "source": "G_E8",
+            "target": "G_E9",
+            "relation_type": "POSSESSES",
+            "provenance": "chunk_3"
+        },
+        {
+            "source": "G_E8",
+            "target": "G_E10",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_3"
+        },
+        {
+            "source": "G_E8",
+            "target": "G_E11",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_3"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E12",
+            "relation_type": "INSTALLS",
+            "provenance": "chunk_3"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E13",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_3"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E14",
+            "relation_type": "EXFILTRATES_VIA",
+            "provenance": "chunk_3"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E12",
+            "relation_type": "EXFILTRATES_VIA",
+            "provenance": "chunk_3"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E15",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_3"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E16",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_4"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E17",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_4"
+        },
+        {
+            "source": "G_E16",
+            "target": "G_E18",
+            "relation_type": "TARGETS",
+            "provenance": "chunk_4"
+        },
+        {
+            "source": "G_E17",
+            "target": "G_E18",
+            "relation_type": "TARGETS",
+            "provenance": "chunk_4"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E19",
+            "relation_type": "COMPROMISES",
+            "provenance": "chunk_4"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E20",
+            "relation_type": "OPERATES_FROM",
+            "provenance": "chunk_4"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E19",
+            "relation_type": "USES_FOR_CAMOUFLAGE",
+            "provenance": "chunk_4"
+        }
+    ]
+}

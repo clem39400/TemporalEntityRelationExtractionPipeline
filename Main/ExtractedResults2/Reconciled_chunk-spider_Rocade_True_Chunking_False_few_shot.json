@@ -1,0 +1,262 @@
+{
+    "metadata": {
+        "total_nodes": 18,
+        "total_relations": 21
+    },
+    "nodes": [
+        {
+            "id": "G_E1",
+            "type": "Threat_Actor",
+            "labels": [
+                "ALPHV Blackcat affiliates"
+            ]
+        },
+        {
+            "id": "G_E2",
+            "type": "Attack_Pattern",
+            "labels": [
+                "social engineering techniques"
+            ]
+        },
+        {
+            "id": "G_E3",
+            "type": "Tool",
+            "labels": [
+                "AnyDesk"
+            ]
+        },
+        {
+            "id": "G_E4",
+            "type": "Tool",
+            "labels": [
+                "Mega sync"
+            ]
+        },
+        {
+            "id": "G_E5",
+            "type": "Tool",
+            "labels": [
+                "Splashtop"
+            ]
+        },
+        {
+            "id": "G_E6",
+            "type": "Tool",
+            "labels": [
+                "Plink"
+            ]
+        },
+        {
+            "id": "G_E7",
+            "type": "Tool",
+            "labels": [
+                "Ngrok"
+            ]
+        },
+        {
+            "id": "G_E8",
+            "type": "Malware",
+            "labels": [
+                "Brute Ratel C4"
+            ]
+        },
+        {
+            "id": "G_E9",
+            "type": "Malware",
+            "labels": [
+                "Cobalt Strike"
+            ]
+        },
+        {
+            "id": "G_E10",
+            "type": "Tool",
+            "labels": [
+                "Evilginx2"
+            ]
+        },
+        {
+            "id": "G_E11",
+            "type": "Victim_Asset",
+            "labels": [
+                "multifactor authentication (MFA) credentials"
+            ]
+        },
+        {
+            "id": "G_E12",
+            "type": "Victim_Asset",
+            "labels": [
+                "login credentials"
+            ]
+        },
+        {
+            "id": "G_E13",
+            "type": "Victim_Asset",
+            "labels": [
+                "session cookies"
+            ]
+        },
+        {
+            "id": "G_E14",
+            "type": "Tool",
+            "labels": [
+                "Metasploit"
+            ]
+        },
+        {
+            "id": "G_E15",
+            "type": "Malware",
+            "labels": [
+                "POORTRY"
+            ]
+        },
+        {
+            "id": "G_E16",
+            "type": "Malware",
+            "labels": [
+                "STONESTOP"
+            ]
+        },
+        {
+            "id": "G_E17",
+            "type": "Attacker_Infrastructure",
+            "labels": [
+                "resources.docusong[.]com"
+            ]
+        },
+        {
+            "id": "G_E18",
+            "type": "Attacker_Infrastructure",
+            "labels": [
+                "Fisa99.screenconnect[.]com"
+            ]
+        }
+    ],
+    "edges": [
+        {
+            "source": "G_E1",
+            "target": "G_E2",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E3",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E4",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E5",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E6",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E7",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E8",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E9",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E10",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E10",
+            "target": "G_E11",
+            "relation_type": "TARGETS",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E10",
+            "target": "G_E12",
+            "relation_type": "TARGETS",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E10",
+            "target": "G_E13",
+            "relation_type": "TARGETS",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E14",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E15",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E16",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E17",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E18",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E2",
+            "target": "G_E3",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E3",
+            "target": "G_E6",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E6",
+            "target": "G_E14",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E14",
+            "target": "G_E15",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_0"
+        }
+    ]
+}

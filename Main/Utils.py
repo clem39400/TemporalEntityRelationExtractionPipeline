@@ -60,33 +60,32 @@ def parse_json_from_response(raw_text: str):
 # ==========================================
 
 def get_rocade_few_shot_prompt(text: str, chunk_id: int) -> str:
-    """Prompt Few-Shot ROCADE ultime avec Anti-Patterns et Checklist anti-FP."""
-    return f"""You are an expert Cyber Threat Intelligence (CTI) analyst specializing in APT campaign mapping and structured graph generation. Extract an exhaustive, highly precise set of entities and relations from the text strictly adhering to the ROCADE ontology schema.
+    """Prompt Few-Shot ROCADE rééquilibré : sémantique réaliste et chaîne temporelle fidèle."""
+    return f"""You are an expert Cyber Threat Intelligence (CTI) analyst.
+Your task is to extract an accurate, highly granular Cyber Knowledge Graph from the text strictly adhering to the ROCADE ontology schema.
 
-### 1. ROCADE ONTOLOGY SCHEMA & DEFINITIONS
-- **Threat_Actor**: Named threat groups or actors (e.g., "APT1").
-- **Attack_Pattern**: Tactics, techniques, procedures (e.g., "spear phishing").
-- **Malware**: Malicious software or payloads (e.g., "WEBC2-TABLE", "backdoor").
-- **Tool**: Legitimate or administrative utilities used offensively (e.g., "psexec", "RAR", "FTP", "at.exe").
-- **Attacker_Infrastructure**: External resources, C2 servers, hop points (e.g., "hop points").
-- **Victim_Asset**: Compromised internal systems, servers, data (e.g., "domain controller", "Microsoft Exchange Server").
-- **Observable**: File names, hashes, links, artifacts (e.g., "hyperlink", "malicious executable").
-- **Vulnerability**: Exploited flaws.
+### 1. ROCADE ONTOLOGY SCHEMA
+- **Entity Types:** Threat_Actor, Attack_Pattern, Malware, Tool, Attacker_Infrastructure, Victim_Asset, Observable, Vulnerability.
+- **Allowed Relations:** 
+  - Semantic: USES, TARGETS, EXPLOITS, INDICATES.
+  - Temporal: BEFORE, SIMULTANEOUS.
 
-**Allowed Relations:**
-- Semantic: USES, TARGETS, EXPLOITS, INDICATES.
-- Temporal: BEFORE, SIMULTANEOUS.
+### 2. EXTRACTION GUIDELINES
+1. **Semantic Roles:**
+   - A `Threat_Actor` `USES` Attack_Patterns, Malware, or Tools explicitly operated by the group.
+   - Delivery mechanisms and artifacts `INDICATE` downloaded payloads or observables.
+   - Malware and Tools `TARGET` Victim_Assets (e.g., credentials, servers, databases).
+2. **Temporal Kill-Chain (`BEFORE`):**
+   - Connect distinct, consecutive steps of the attack lifecycle using `BEFORE` relations (e.g., Initial Access -> Payload Download -> Execution -> Lateral Movement -> Exfiltration).
+   - Do NOT chain unrelated parallel tools with BEFORE unless a sequential execution is explicitly stated.
+3. **Exact Substring Mentions:** The "mention" field must be an exact substring from the source text.
+4. **Namespace ID:** All entity IDs MUST start with "C{chunk_id}_".
+5. **Output Format:** Output ONLY a single valid JSON object. No conversational intro, no markdown text outside the JSON.
 
-### 2. STRICT EXTRACTION & TOPOLOGY RULES
-1. **Linear Topology (Anti-Star Graph Constraint):** ABSOLUTELY FORBIDDEN to build a "star" graph where the Threat_Actor connects directly to every tool or asset. Build a sequential, step-by-step chain reflecting the attack flow.
-2. **Continuous Time Chain:** Connect sequential execution steps with an unbroken chain of `BEFORE` relations mirroring the semantic path.
-3. **Coreference / No Duplicate Entities:** If the same real-world entity appears via a synonym or pronoun, reuse the exact same entity ID. Do not re-create duplicates.
-4. **Exact String Matching:** The "mention" field must be an exact substring from the text.
-5. **Localized Namespace Prefix:** All entity IDs MUST start with "C{chunk_id}_".
-6. **Strict Output Format:** Output ONLY a valid JSON object. No conversational intro, no markdown fences outside JSON.
+### 3. GOLD STANDARD EXAMPLES
 
-### 3. GOLD STANDARD EXAMPLE
-Input Text: "The threat actor sent spear phishing emails containing a hyperlink. The link downloaded a malicious executable, which established a backdoor. The attackers then used psexec to compromise the domain controller."
+Example 1 (Initial Access & Compromise):
+Input Text: "The threat actor sent spear phishing emails containing a hyperlink. The link downloaded a malicious executable, which dropped the WEBC2-TABLE backdoor."
 Output:
 {{
   "entities": [
@@ -94,41 +93,43 @@ Output:
     {{"id": "C{chunk_id}_E2", "type": "Attack_Pattern", "mention": "spear phishing emails"}},
     {{"id": "C{chunk_id}_E3", "type": "Observable", "mention": "hyperlink"}},
     {{"id": "C{chunk_id}_E4", "type": "Observable", "mention": "malicious executable"}},
-    {{"id": "C{chunk_id}_E5", "type": "Malware", "mention": "backdoor"}},
-    {{"id": "C{chunk_id}_E6", "type": "Tool", "mention": "psexec"}},
-    {{"id": "C{chunk_id}_E7", "type": "Victim_Asset", "mention": "domain controller"}}
+    {{"id": "C{chunk_id}_E5", "type": "Malware", "mention": "WEBC2-TABLE"}}
   ],
   "relations": [
     {{"source": "C{chunk_id}_E1", "target": "C{chunk_id}_E2", "relation_type": "USES"}},
     {{"source": "C{chunk_id}_E2", "target": "C{chunk_id}_E3", "relation_type": "INDICATES"}},
     {{"source": "C{chunk_id}_E3", "target": "C{chunk_id}_E4", "relation_type": "INDICATES"}},
     {{"source": "C{chunk_id}_E4", "target": "C{chunk_id}_E5", "relation_type": "INDICATES"}},
-    {{"source": "C{chunk_id}_E5", "target": "C{chunk_id}_E6", "relation_type": "USES"}},
-    {{"source": "C{chunk_id}_E6", "target": "C{chunk_id}_E7", "relation_type": "TARGETS"}},
     {{"source": "C{chunk_id}_E2", "target": "C{chunk_id}_E3", "relation_type": "BEFORE"}},
     {{"source": "C{chunk_id}_E3", "target": "C{chunk_id}_E4", "relation_type": "BEFORE"}},
-    {{"source": "C{chunk_id}_E4", "target": "C{chunk_id}_E5", "relation_type": "BEFORE"}},
-    {{"source": "C{chunk_id}_E5", "target": "C{chunk_id}_E6", "relation_type": "BEFORE"}},
-    {{"source": "C{chunk_id}_E6", "target": "C{chunk_id}_E7", "relation_type": "BEFORE"}}
+    {{"source": "C{chunk_id}_E4", "target": "C{chunk_id}_E5", "relation_type": "BEFORE"}}
   ]
 }}
 
-### 4. ANTI-PATTERN — WHAT NOT TO DO
-Incorrect Output (Rejected — "star" topology, do NOT connect the Threat Actor directly to everything):
+Example 2 (Lateral Movement & Exfiltration):
+Input Text: "The attackers used legitimate credentials to access the network. They then executed psexec to compromise the domain controller and used RAR to compress files for exfiltration."
+Output:
 {{
+  "entities": [
+    {{"id": "C{chunk_id}_E6", "type": "Threat_Actor", "mention": "attackers"}},
+    {{"id": "C{chunk_id}_E7", "type": "Victim_Asset", "mention": "legitimate credentials"}},
+    {{"id": "C{chunk_id}_E8", "type": "Victim_Asset", "mention": "network"}},
+    {{"id": "C{chunk_id}_E9", "type": "Tool", "mention": "psexec"}},
+    {{"id": "C{chunk_id}_E10", "type": "Victim_Asset", "mention": "domain controller"}},
+    {{"id": "C{chunk_id}_E11", "type": "Tool", "mention": "RAR"}},
+    {{"id": "C{chunk_id}_E12", "type": "Victim_Asset", "mention": "files"}}
+  ],
   "relations": [
-    {{"source": "C{chunk_id}_E1", "target": "C{chunk_id}_E4", "relation_type": "USES"}},
-    {{"source": "C{chunk_id}_E1", "target": "C{chunk_id}_E5", "relation_type": "USES"}},
-    {{"source": "C{chunk_id}_E1", "target": "C{chunk_id}_E6", "relation_type": "USES"}}
+    {{"source": "C{chunk_id}_E6", "target": "C{chunk_id}_E7", "relation_type": "USES"}},
+    {{"source": "C{chunk_id}_E7", "target": "C{chunk_id}_E8", "relation_type": "TARGETS"}},
+    {{"source": "C{chunk_id}_E6", "target": "C{chunk_id}_E9", "relation_type": "USES"}},
+    {{"source": "C{chunk_id}_E9", "target": "C{chunk_id}_E10", "relation_type": "TARGETS"}},
+    {{"source": "C{chunk_id}_E6", "target": "C{chunk_id}_E11", "relation_type": "USES"}},
+    {{"source": "C{chunk_id}_E11", "target": "C{chunk_id}_E12", "relation_type": "TARGETS"}},
+    {{"source": "C{chunk_id}_E7", "target": "C{chunk_id}_E9", "relation_type": "BEFORE"}},
+    {{"source": "C{chunk_id}_E9", "target": "C{chunk_id}_E11", "relation_type": "BEFORE"}}
   ]
 }}
-Why this is wrong: The threat actor is linked directly to every single item, creating a star graph instead of a sequential chain. Avoid this.
-
-### 5. FINAL CHECKLIST
-- [ ] No star topology (the threat actor does not connect to every downstream tool).
-- [ ] Every sequential step has a matching `BEFORE` relation.
-- [ ] All IDs start with "C{chunk_id}_".
-- [ ] Output is valid JSON only.
 
 ### TEXT TO ANALYZE
 {text}
@@ -274,44 +275,52 @@ Why this is wrong: every edge starts from the malware (E5) directly, ignoring th
 """
 
 def get_no_rocade_cot_prompt(text: str, chunk_id: int) -> str:
-    """Prompt Chain-of-Thought SANS contraintes ontologiques (Topologie Linéaire Forcée)."""
-    return f"""You are a cybersecurity analyst.
-Your task is to extract entities and their relationships from the text to build a graph.
-You are completely FREE to invent ANY Entity Type and ANY Relation Type that you think best describes the text.
+    """Prompt Chain-of-Thought SANS ROCADE : structure identique à la version ROCADE avec liberté de taxonomie."""
+    return f"""You are an expert Cyber Threat Intelligence (CTI) analyst specializing in highly granular attack kill-chain reconstruction.
+Your task is to extract a comprehensive chronology of micro-events from the provided text to build a knowledge graph.
 
-### STRICT RULES - THE "LINEAR KILL-CHAIN" METHOD
-1. Linear Topology (Crucial): DO NOT build a "star" graph where the Attacker connects to every single tool. Instead, build a LINEAR chain representing the exact sequential flow of the attack (e.g., Attacker -> Tool A -> Tool B -> Target).
-2. Continuous Time Chain: You MUST connect these sequential steps with an unbroken chain of temporal relations (e.g., HAPPENS_BEFORE).
-3. Prefix all entity IDs with "C{chunk_id}_". The "mention" field must be an exact substring from the text.
-4. You must explain your reasoning step-by-step in a <thinking> block before outputting the <json> block. Explicitly enforce the linear topology in your reasoning.
+### 1. TAXONOMY & ONTOLOGY FREEDOM
+* You have complete freedom: you may use standard cybersecurity categories (e.g., Threat_Actor, Attack_Pattern, Malware, Tool, Victim_Asset, USES, TARGETS, BEFORE) OR invent ANY custom Entity Types and Relation Types that you see fit.
 
-### EXAMPLE
-Input Text: "The attacker breached the web server using SQLmap. Afterwards, they exfiltrated the database."
+### 2. STRICT EXTRACTION RULES
+1. Comprehensive but Precise: Extract all technical entities (tools, malware, assets, actors). Do not invent generic entities.
+2. Strict Chronological Chaining: Reconstruct the kill-chain by linking strictly consecutive actions with temporal relations such as BEFORE (e.g., Step A -> Step B -> Step C). Do not create branching or duplicate timelines unless explicitly stated.
+3. No Hallucinated Links: Only create semantic relations if the text explicitly describes the interaction. Do not connect every single entity to the Threat_Actor.
+4. ID Prefix: All entity IDs MUST start with "C{chunk_id}_".
+
+### 3. EXAMPLE OF EXPECTED GRANULARITY
+
+Input Text: "The threat actor distributed a malicious PDF. When opened, the PDF executed a JavaScript payload which downloaded the Trickbot malware. Trickbot then targeted the local credentials."
 
 <thinking>
-1. Entities: "attacker" (Attacker), "SQLmap" (Hacking_Tool), "web server" (Server), "database" (Data).
-2. Linear Semantic Relations: 
-   - Attacker UTILIZES SQLmap. 
-   - SQLmap BREACHES web server. 
-   - web server COMPROMISES database.
-3. Continuous Temporal Chain: 
-   - SQLmap HAPPENS_BEFORE web server.
-   - web server HAPPENS_BEFORE database.
+1. Entity Identification: I see "threat actor" (Threat_Actor), "malicious PDF" (Observable), "JavaScript payload" (Malware), "Trickbot" (Malware), and "local credentials" (Victim_Asset).
+2. Relation Deduction: 
+   - The actor USES the PDF.
+   - The PDF INDICATES the JavaScript payload.
+   - The JavaScript USES Trickbot.
+   - Trickbot TARGETS local credentials.
+3. Temporal Markers: "When opened" and "then" imply a strict sequence.
+   - PDF distribution BEFORE JavaScript execution.
+   - JavaScript execution BEFORE Trickbot download.
+   - Trickbot download BEFORE targeting credentials.
 </thinking>
 <json>
 {{
   "entities": [
-    {{"id": "C{chunk_id}_E1", "type": "Attacker", "mention": "attacker"}},
-    {{"id": "C{chunk_id}_E2", "type": "Server", "mention": "web server"}},
-    {{"id": "C{chunk_id}_E3", "type": "Hacking_Tool", "mention": "SQLmap"}},
-    {{"id": "C{chunk_id}_E4", "type": "Data", "mention": "database"}}
+    {{"id": "C{chunk_id}_E1", "type": "Threat_Actor", "mention": "threat actor"}},
+    {{"id": "C{chunk_id}_E2", "type": "Observable", "mention": "malicious PDF"}},
+    {{"id": "C{chunk_id}_E3", "type": "Malware", "mention": "JavaScript payload"}},
+    {{"id": "C{chunk_id}_E4", "type": "Malware", "mention": "Trickbot"}},
+    {{"id": "C{chunk_id}_E5", "type": "Victim_Asset", "mention": "local credentials"}}
   ],
   "relations": [
-    {{"source": "C{chunk_id}_E1", "target": "C{chunk_id}_E3", "relation_type": "UTILIZES"}},
-    {{"source": "C{chunk_id}_E3", "target": "C{chunk_id}_E2", "relation_type": "BREACHES"}},
-    {{"source": "C{chunk_id}_E2", "target": "C{chunk_id}_E4", "relation_type": "COMPROMISES"}},
-    {{"source": "C{chunk_id}_E3", "target": "C{chunk_id}_E2", "relation_type": "HAPPENS_BEFORE"}},
-    {{"source": "C{chunk_id}_E2", "target": "C{chunk_id}_E4", "relation_type": "HAPPENS_BEFORE"}}
+    {{"source": "C{chunk_id}_E1", "target": "C{chunk_id}_E2", "relation_type": "USES"}},
+    {{"source": "C{chunk_id}_E2", "target": "C{chunk_id}_E3", "relation_type": "INDICATES"}},
+    {{"source": "C{chunk_id}_E3", "target": "C{chunk_id}_E4", "relation_type": "USES"}},
+    {{"source": "C{chunk_id}_E4", "target": "C{chunk_id}_E5", "relation_type": "TARGETS"}},
+    {{"source": "C{chunk_id}_E2", "target": "C{chunk_id}_E3", "relation_type": "BEFORE"}},
+    {{"source": "C{chunk_id}_E3", "target": "C{chunk_id}_E4", "relation_type": "BEFORE"}},
+    {{"source": "C{chunk_id}_E4", "target": "C{chunk_id}_E5", "relation_type": "BEFORE"}}
   ]
 }}
 </json>

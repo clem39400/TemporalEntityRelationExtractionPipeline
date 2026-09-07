@@ -1,0 +1,199 @@
+{
+    "metadata": {
+        "total_nodes": 15,
+        "total_relations": 14
+    },
+    "nodes": [
+        {
+            "id": "G_E1",
+            "type": "Threat_Actor",
+            "labels": [
+                "UNC5267"
+            ]
+        },
+        {
+            "id": "G_E2",
+            "type": "Organization",
+            "labels": [
+                "Mandiant"
+            ]
+        },
+        {
+            "id": "G_E3",
+            "type": "Nation_State",
+            "labels": [
+                "DPRK"
+            ]
+        },
+        {
+            "id": "G_E4",
+            "type": "Worker_Group",
+            "labels": [
+                "DPRK IT workers"
+            ]
+        },
+        {
+            "id": "G_E5",
+            "type": "Tool",
+            "labels": [
+                "virtual private network (VPN)"
+            ]
+        },
+        {
+            "id": "G_E6",
+            "type": "Service_Provider",
+            "labels": [
+                "Astrill VPN"
+            ]
+        },
+        {
+            "id": "G_E7",
+            "type": "Collaborator",
+            "labels": [
+                "facilitators"
+            ]
+        },
+        {
+            "id": "G_E8",
+            "type": "Infrastructure",
+            "labels": [
+                "laptop farms"
+            ]
+        },
+        {
+            "id": "G_E9",
+            "type": "Threat_Actor",
+            "labels": [
+                "North Korean IT workers"
+            ]
+        },
+        {
+            "id": "G_E10",
+            "type": "Threat_Actor",
+            "labels": [
+                "UNC2428"
+            ]
+        },
+        {
+            "id": "G_E11",
+            "type": "Malware",
+            "labels": [
+                "MURKYTOUR"
+            ]
+        },
+        {
+            "id": "G_E12",
+            "type": "Malware",
+            "labels": [
+                "LONEFLEET"
+            ]
+        },
+        {
+            "id": "G_E13",
+            "type": "File",
+            "labels": [
+                "RafaelConnect.exe"
+            ]
+        },
+        {
+            "id": "G_E14",
+            "type": "Organization",
+            "labels": [
+                "Rafael"
+            ]
+        },
+        {
+            "id": "G_E15",
+            "type": "Data",
+            "labels": [
+                "proprietary data"
+            ]
+        }
+    ],
+    "edges": [
+        {
+            "source": "G_E2",
+            "target": "G_E1",
+            "relation_type": "TRACKS",
+            "provenance": "chunk_5"
+        },
+        {
+            "source": "G_E3",
+            "target": "G_E4",
+            "relation_type": "EMPLOYS",
+            "provenance": "chunk_5"
+        },
+        {
+            "source": "G_E4",
+            "target": "G_E6",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_5"
+        },
+        {
+            "source": "G_E6",
+            "target": "G_E5",
+            "relation_type": "PROVIDES",
+            "provenance": "chunk_5"
+        },
+        {
+            "source": "G_E4",
+            "target": "G_E7",
+            "relation_type": "ENGAGES",
+            "provenance": "chunk_5"
+        },
+        {
+            "source": "G_E7",
+            "target": "G_E8",
+            "relation_type": "OPERATES",
+            "provenance": "chunk_5"
+        },
+        {
+            "source": "G_E8",
+            "target": "G_E4",
+            "relation_type": "HOSTS_ASSETS_FOR",
+            "provenance": "chunk_5"
+        },
+        {
+            "source": "G_E9",
+            "target": "G_E15",
+            "relation_type": "STEALS",
+            "provenance": "chunk_6"
+        },
+        {
+            "source": "G_E10",
+            "target": "G_E11",
+            "relation_type": "DISTRIBUTES",
+            "provenance": "chunk_6"
+        },
+        {
+            "source": "G_E10",
+            "target": "G_E14",
+            "relation_type": "IMPERSONATES",
+            "provenance": "chunk_6"
+        },
+        {
+            "source": "G_E13",
+            "target": "G_E12",
+            "relation_type": "IS_A",
+            "provenance": "chunk_6"
+        },
+        {
+            "source": "G_E12",
+            "target": "G_E11",
+            "relation_type": "LAUNCHES",
+            "provenance": "chunk_6"
+        },
+        {
+            "source": "G_E9",
+            "target": "G_E8",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_6"
+        },
+        {
+            "source": "G_E10",
+            "target": "G_E13",
+            "relation_type": "DEPLOYS",
+            "provenance": "chunk_6"
+        }
+    ]
+}

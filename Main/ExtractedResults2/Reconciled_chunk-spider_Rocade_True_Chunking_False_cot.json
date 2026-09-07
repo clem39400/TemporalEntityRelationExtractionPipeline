@@ -1,0 +1,190 @@
+{
+    "metadata": {
+        "total_nodes": 12,
+        "total_relations": 16
+    },
+    "nodes": [
+        {
+            "id": "G_E1",
+            "type": "Threat_Actor",
+            "labels": [
+                "ALPHV Blackcat affiliates"
+            ]
+        },
+        {
+            "id": "G_E2",
+            "type": "Attack_Pattern",
+            "labels": [
+                "social engineering"
+            ]
+        },
+        {
+            "id": "G_E3",
+            "type": "Victim_Asset",
+            "labels": [
+                "employee credentials"
+            ]
+        },
+        {
+            "id": "G_E4",
+            "type": "Tool",
+            "labels": [
+                "Evilginx2"
+            ]
+        },
+        {
+            "id": "G_E5",
+            "type": "Tool",
+            "labels": [
+                "AnyDesk, Mega sync, and Splashtop"
+            ]
+        },
+        {
+            "id": "G_E6",
+            "type": "Tool",
+            "labels": [
+                "Plink and Ngrok"
+            ]
+        },
+        {
+            "id": "G_E7",
+            "type": "Malware",
+            "labels": [
+                "Brute Ratel C4 and Cobalt Strike"
+            ]
+        },
+        {
+            "id": "G_E8",
+            "type": "Attacker_Infrastructure",
+            "labels": [
+                "resources.docusong[.]com"
+            ]
+        },
+        {
+            "id": "G_E9",
+            "type": "Malware",
+            "labels": [
+                "POORTRY and STONESTOP"
+            ]
+        },
+        {
+            "id": "G_E10",
+            "type": "Tool",
+            "labels": [
+                "Mega.nz or Dropbox"
+            ]
+        },
+        {
+            "id": "G_E11",
+            "type": "Malware",
+            "labels": [
+                "ALPHV Blackcat Ransomware 2.0 Sphynx"
+            ]
+        },
+        {
+            "id": "G_E12",
+            "type": "Observable",
+            "labels": [
+                "file.txt"
+            ]
+        }
+    ],
+    "edges": [
+        {
+            "source": "G_E1",
+            "target": "G_E2",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E3",
+            "relation_type": "TARGETS",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E4",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E5",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E6",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E7",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E7",
+            "target": "G_E8",
+            "relation_type": "INDICATES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E9",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E10",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E11",
+            "relation_type": "USES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E11",
+            "target": "G_E12",
+            "relation_type": "INDICATES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E2",
+            "target": "G_E3",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E3",
+            "target": "G_E5",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E5",
+            "target": "G_E10",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E10",
+            "target": "G_E11",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E11",
+            "target": "G_E12",
+            "relation_type": "BEFORE",
+            "provenance": "chunk_0"
+        }
+    ]
+}

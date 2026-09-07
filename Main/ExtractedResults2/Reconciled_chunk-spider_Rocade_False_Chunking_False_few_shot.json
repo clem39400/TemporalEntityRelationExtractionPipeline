@@ -1,0 +1,212 @@
+{
+    "metadata": {
+        "total_nodes": 16,
+        "total_relations": 15
+    },
+    "nodes": [
+        {
+            "id": "G_E1",
+            "type": "Threat_Actor",
+            "labels": [
+                "ALPHV Blackcat actors"
+            ]
+        },
+        {
+            "id": "G_E2",
+            "type": "Ransomware",
+            "labels": [
+                "ALPHV Blackcat Ransomware 2.0 Sphynx"
+            ]
+        },
+        {
+            "id": "G_E3",
+            "type": "Sector",
+            "labels": [
+                "healthcare sector"
+            ]
+        },
+        {
+            "id": "G_E4",
+            "type": "Software",
+            "labels": [
+                "AnyDesk"
+            ]
+        },
+        {
+            "id": "G_E5",
+            "type": "Software",
+            "labels": [
+                "Mega sync"
+            ]
+        },
+        {
+            "id": "G_E6",
+            "type": "Software",
+            "labels": [
+                "Splashtop"
+            ]
+        },
+        {
+            "id": "G_E7",
+            "type": "Tool",
+            "labels": [
+                "Plink"
+            ]
+        },
+        {
+            "id": "G_E8",
+            "type": "Tool",
+            "labels": [
+                "Ngrok"
+            ]
+        },
+        {
+            "id": "G_E9",
+            "type": "Tool",
+            "labels": [
+                "Brute Ratel C4"
+            ]
+        },
+        {
+            "id": "G_E10",
+            "type": "Tool",
+            "labels": [
+                "Cobalt Strike"
+            ]
+        },
+        {
+            "id": "G_E11",
+            "type": "Framework",
+            "labels": [
+                "Evilginx2"
+            ]
+        },
+        {
+            "id": "G_E12",
+            "type": "Software",
+            "labels": [
+                "Metasploit"
+            ]
+        },
+        {
+            "id": "G_E13",
+            "type": "Tool",
+            "labels": [
+                "POORTRY"
+            ]
+        },
+        {
+            "id": "G_E14",
+            "type": "Tool",
+            "labels": [
+                "STONESTOP"
+            ]
+        },
+        {
+            "id": "G_E15",
+            "type": "Infrastructure",
+            "labels": [
+                "resources.docusong[.]com"
+            ]
+        },
+        {
+            "id": "G_E16",
+            "type": "Infrastructure",
+            "labels": [
+                "Fisa99.screenconnect[.]com"
+            ]
+        }
+    ],
+    "edges": [
+        {
+            "source": "G_E1",
+            "target": "G_E3",
+            "relation_type": "TARGETS",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E2",
+            "relation_type": "DEPLOYS",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E4",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E5",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E6",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E7",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E8",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E9",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E10",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E11",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E12",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E13",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E14",
+            "relation_type": "UTILIZES",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E15",
+            "relation_type": "COMMUNICATES_VIA",
+            "provenance": "chunk_0"
+        },
+        {
+            "source": "G_E1",
+            "target": "G_E16",
+            "relation_type": "COMMUNICATES_VIA",
+            "provenance": "chunk_0"
+        }
+    ]
+}

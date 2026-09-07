@@ -1,0 +1,437 @@
+[
+    {
+        "chunk_metadata": {
+            "source": "chunk-spider.txt",
+            "chunk_id": 0
+        },
+        "hyperparameters": {
+            "input_directory": "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main\\InputData",
+            "output_directory": "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main\\ExtractedResults2",
+            "model_name": "gemini-3.1-flash-lite",
+            "prompt_type": "cot",
+            "use_chunking": false,
+            "use_rocade": false,
+            "test_limit": 0,
+            "run_phase_3": true,
+            "reconciliation_sim_threshold": 0.85,
+            "reconciliation_malware_threshold": 0.95,
+            "cleaner_max_connectivity": 15
+        },
+        "extraction": {
+            "entities": [
+                {
+                    "id": "C0_E1",
+                    "type": "Threat_Actor",
+                    "mention": "ALPHV Blackcat affiliates"
+                },
+                {
+                    "id": "C0_E2",
+                    "type": "Social_Engineering_Technique",
+                    "mention": "phone calls or SMS messages"
+                },
+                {
+                    "id": "C0_E3",
+                    "type": "Credential",
+                    "mention": "login credentials and session cookies"
+                },
+                {
+                    "id": "C0_E4",
+                    "type": "Tool",
+                    "mention": "Evilginx2"
+                },
+                {
+                    "id": "C0_E5",
+                    "type": "Network_Access",
+                    "mention": "initial access"
+                },
+                {
+                    "id": "C0_E6",
+                    "type": "Tool",
+                    "mention": "AnyDesk, Mega sync, and Splashtop"
+                },
+                {
+                    "id": "C0_E7",
+                    "type": "Tool",
+                    "mention": "Plink and Ngrok"
+                },
+                {
+                    "id": "C0_E8",
+                    "type": "Malware",
+                    "mention": "Brute Ratel C4 and Cobalt Strike"
+                },
+                {
+                    "id": "C0_E9",
+                    "type": "Tool",
+                    "mention": "Metasploit"
+                },
+                {
+                    "id": "C0_E10",
+                    "type": "Malware",
+                    "mention": "POORTRY and STONESTOP"
+                },
+                {
+                    "id": "C0_E11",
+                    "type": "Malware",
+                    "mention": "ALPHV Blackcat Ransomware 2.0 Sphynx"
+                },
+                {
+                    "id": "C0_E12",
+                    "type": "Exfiltration_Platform",
+                    "mention": "Mega.nz or Dropbox"
+                }
+            ],
+            "relations": [
+                {
+                    "source": "C0_E1",
+                    "target": "C0_E2",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C0_E2",
+                    "target": "C0_E4",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C0_E4",
+                    "target": "C0_E3",
+                    "relation_type": "OBTAINS"
+                },
+                {
+                    "source": "C0_E3",
+                    "target": "C0_E5",
+                    "relation_type": "ENABLES"
+                },
+                {
+                    "source": "C0_E5",
+                    "target": "C0_E6",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C0_E6",
+                    "target": "C0_E7",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C0_E7",
+                    "target": "C0_E8",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C0_E8",
+                    "target": "C0_E9",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C0_E9",
+                    "target": "C0_E10",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C0_E10",
+                    "target": "C0_E12",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C0_E12",
+                    "target": "C0_E11",
+                    "relation_type": "BEFORE"
+                }
+            ]
+        }
+    },
+    {
+        "chunk_metadata": {
+            "source": "chunks China's Cyber Espionage.txt",
+            "chunk_id": 1
+        },
+        "hyperparameters": {
+            "input_directory": "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main\\InputData",
+            "output_directory": "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main\\ExtractedResults2",
+            "model_name": "gemini-3.1-flash-lite",
+            "prompt_type": "cot",
+            "use_chunking": false,
+            "use_rocade": false,
+            "test_limit": 0,
+            "run_phase_3": true,
+            "reconciliation_sim_threshold": 0.85,
+            "reconciliation_malware_threshold": 0.95,
+            "cleaner_max_connectivity": 15
+        },
+        "extraction": {
+            "entities": [
+                {
+                    "id": "C1_E1",
+                    "type": "Threat_Actor",
+                    "mention": "APT1"
+                },
+                {
+                    "id": "C1_E2",
+                    "type": "Attack_Vector",
+                    "mention": "spear phishing email"
+                },
+                {
+                    "id": "C1_E3",
+                    "type": "Observable",
+                    "mention": "malicious ZIP file (Internal_Discussion_Press_Release_In_Next_Week8.zip)"
+                },
+                {
+                    "id": "C1_E4",
+                    "type": "Malware",
+                    "mention": "WEBC2-TABLE backdoor"
+                },
+                {
+                    "id": "C1_E5",
+                    "type": "Victim_Asset",
+                    "mention": "legitimate credentials"
+                },
+                {
+                    "id": "C1_E6",
+                    "type": "Tool",
+                    "mention": "psexec"
+                },
+                {
+                    "id": "C1_E7",
+                    "type": "Tool",
+                    "mention": "at.exe"
+                },
+                {
+                    "id": "C1_E8",
+                    "type": "Tool",
+                    "mention": "RAR archiving utility"
+                },
+                {
+                    "id": "C1_E9",
+                    "type": "Exfiltration_Protocol",
+                    "mention": "FTP"
+                },
+                {
+                    "id": "C1_E10",
+                    "type": "Malware",
+                    "mention": "GETMAIL"
+                },
+                {
+                    "id": "C1_E11",
+                    "type": "Malware",
+                    "mention": "MAPIGET"
+                },
+                {
+                    "id": "C1_E12",
+                    "type": "Infrastructure",
+                    "mention": "hop points"
+                }
+            ],
+            "relations": [
+                {
+                    "source": "C1_E1",
+                    "target": "C1_E2",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C1_E2",
+                    "target": "C1_E3",
+                    "relation_type": "DELIVERS"
+                },
+                {
+                    "source": "C1_E3",
+                    "target": "C1_E4",
+                    "relation_type": "INSTALLS"
+                },
+                {
+                    "source": "C1_E4",
+                    "target": "C1_E5",
+                    "relation_type": "ACQUIRES"
+                },
+                {
+                    "source": "C1_E1",
+                    "target": "C1_E6",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C1_E1",
+                    "target": "C1_E7",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C1_E1",
+                    "target": "C1_E8",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C1_E1",
+                    "target": "C1_E9",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C1_E1",
+                    "target": "C1_E10",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C1_E1",
+                    "target": "C1_E11",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C1_E1",
+                    "target": "C1_E12",
+                    "relation_type": "USES"
+                },
+                {
+                    "source": "C1_E2",
+                    "target": "C1_E3",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C1_E3",
+                    "target": "C1_E4",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C1_E4",
+                    "target": "C1_E5",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C1_E5",
+                    "target": "C1_E6",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C1_E6",
+                    "target": "C1_E8",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C1_E8",
+                    "target": "C1_E9",
+                    "relation_type": "BEFORE"
+                }
+            ]
+        }
+    },
+    {
+        "chunk_metadata": {
+            "source": "chunks-m-trends-2025.txt",
+            "chunk_id": 2
+        },
+        "hyperparameters": {
+            "input_directory": "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main\\InputData",
+            "output_directory": "C:\\Users\\cleme\\IdeaProjects\\TemporalEntityRelationExtractionPipeline\\Main\\ExtractedResults2",
+            "model_name": "gemini-3.1-flash-lite",
+            "prompt_type": "cot",
+            "use_chunking": false,
+            "use_rocade": false,
+            "test_limit": 0,
+            "run_phase_3": true,
+            "reconciliation_sim_threshold": 0.85,
+            "reconciliation_malware_threshold": 0.95,
+            "cleaner_max_connectivity": 15
+        },
+        "extraction": {
+            "entities": [
+                {
+                    "id": "C2_E1",
+                    "type": "Threat_Actor",
+                    "mention": "UNC2428"
+                },
+                {
+                    "id": "C2_E2",
+                    "type": "Campaign",
+                    "mention": "social engineering campaign"
+                },
+                {
+                    "id": "C2_E3",
+                    "type": "Deception_Site",
+                    "mention": "site purporting to be part of Rafael's web presence"
+                },
+                {
+                    "id": "C2_E4",
+                    "type": "Malware_Installer",
+                    "mention": "RafaelConnect.exe"
+                },
+                {
+                    "id": "C2_E5",
+                    "type": "Malware",
+                    "mention": "LONEFLEET"
+                },
+                {
+                    "id": "C2_E6",
+                    "type": "Malware",
+                    "mention": "MURKYTOUR"
+                },
+                {
+                    "id": "C2_E7",
+                    "type": "Victim_Asset",
+                    "mention": "personal information"
+                },
+                {
+                    "id": "C2_E8",
+                    "type": "Victim_Asset",
+                    "mention": "resume"
+                }
+            ],
+            "relations": [
+                {
+                    "source": "C2_E1",
+                    "target": "C2_E2",
+                    "relation_type": "CONDUCTS"
+                },
+                {
+                    "source": "C2_E2",
+                    "target": "C2_E3",
+                    "relation_type": "REDIRECTS_TO"
+                },
+                {
+                    "source": "C2_E3",
+                    "target": "C2_E4",
+                    "relation_type": "HOSTS"
+                },
+                {
+                    "source": "C2_E4",
+                    "target": "C2_E5",
+                    "relation_type": "IS_A"
+                },
+                {
+                    "source": "C2_E5",
+                    "target": "C2_E7",
+                    "relation_type": "COLLECTS"
+                },
+                {
+                    "source": "C2_E5",
+                    "target": "C2_E8",
+                    "relation_type": "COLLECTS"
+                },
+                {
+                    "source": "C2_E5",
+                    "target": "C2_E6",
+                    "relation_type": "LAUNCHES"
+                },
+                {
+                    "source": "C2_E2",
+                    "target": "C2_E3",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C2_E3",
+                    "target": "C2_E4",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C2_E4",
+                    "target": "C2_E5",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C2_E5",
+                    "target": "C2_E7",
+                    "relation_type": "BEFORE"
+                },
+                {
+                    "source": "C2_E7",
+                    "target": "C2_E6",
+                    "relation_type": "BEFORE"
+                }
+            ]
+        }
+    }
+]
